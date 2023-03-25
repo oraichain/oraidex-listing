@@ -1,5 +1,7 @@
 import { AccountData } from "@cosmjs/amino";
+import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { GasPrice } from "@cosmjs/stargate";
 
 async function collectWallet(): Promise<DirectSecp256k1HdWallet> {
     // use keplr instead
@@ -10,4 +12,11 @@ export async function getWallet(): Promise<{ accounts: readonly AccountData[], w
     const wallet = await collectWallet();
     const accounts = await wallet.getAccounts();
     return { accounts, wallet };
+}
+
+export async function getCosmWasmClient() {
+    const { accounts, wallet } = await getWallet();
+    const defaultAddress = accounts[0].address;
+    const client = await SigningCosmWasmClient.connectWithSigner(process.env.RPC_URL as string, wallet, { gasPrice: GasPrice.fromString(process.env.GAS_PRICES as string) });
+    return { client, defaultAddress, wallet };
 }
