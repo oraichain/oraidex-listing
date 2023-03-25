@@ -4,13 +4,14 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
-    "@cosmjs/cosmwasm-stargate": "^0.29.5",
-    "@cosmjs/proto-signing": "^0.29.5",
-    "@cosmjs/stargate": "^0.29.5"
+    "@cosmjs/amino": "^0.30.1",
+    "@cosmjs/cosmwasm-stargate": "^0.30.1",
+    "@cosmjs/proto-signing": "^0.30.1",
+    "@cosmjs/stargate": "^0.30.1",
+    "dotenv": "^16.0.3"
   },
   "main": "src/index.ts",
   "scripts": {
-    "start": "npx ts-node src/index",
-    "build": "npx tsc"
+    "start": "npx ts-node src/index.ts"
   }
 }
