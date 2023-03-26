@@ -39,7 +39,7 @@ async function addPairAndLpToken(cw20ContractAddress: string) {
 
 async function listingMultisig(cw20ContractAddress: string) {
     const { client, defaultAddress } = await getCosmWasmClient();
-    const { remoteDecimals, remoteDenom, localChannelId, ibcWasmAddress, staking, tokenCoingeckoId } = envVariables;
+    const { remoteDecimals, remoteDenom, localChannelId, ibcWasmAddress, staking, tokenCoingeckoId, tokenSymbol } = envVariables;
 
     // we dont use the pair & lp address from the arguments because they can be passed incorrectly. Instead, its easier to query and get the right pair info
     const factory = new OraiswapFactoryClient(client, defaultAddress, envVariables.factory as string);
@@ -49,7 +49,7 @@ async function listingMultisig(cw20ContractAddress: string) {
     const msgs = await buildMultisigMessages({ cw20ContractAddress, remoteDecimals: remoteDecimals as string, remoteDenom: remoteDenom as string, ibcWasmAddress, pairAddress: pairInfo.contract_addr, localChannelId, lpAddress: pairInfo.liquidity_token, stakingContract: staking as string, tokenCoingeckoId: tokenCoingeckoId as string });
 
     // build propose msg for multisig
-    const title = `Update mapping converter, create mining pool & provide initial liquidity for token with address ${cw20ContractAddress}`;
+    const title = `Update mapping converter, create mining pool & provide initial liquidity for token with symbol ${tokenSymbol}`;
     const proposeMsg = buildMultisigProposeMsg(title, msgs);
     const result = await client.execute(defaultAddress, envVariables.admin as string, proposeMsg, 'auto');
     console.log("result: ", result);
