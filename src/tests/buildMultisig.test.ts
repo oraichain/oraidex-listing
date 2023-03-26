@@ -8,7 +8,6 @@ test('build-multisig', async () => {
     const cw20ContractAddress = "orai1m94vru6wmurnlzvh3syzpll4m4l4526v9amzh7udcnc8rpw0znyquh5ezd";
     const msgs = await buildMultisigMessages({ cw20ContractAddress, remoteDenom: "foobar", remoteDecimals: "18", ibcWasmAddress: ibcWasmAddress, pairAddress: pairAddress, lpAddress, localChannelId: "channel-29", stakingContract: stakingAddress, tokenCoingeckoId: "tron" });
 
-    console.log("msgs: ", msgs);
     expect(msgs.length).toBe(3);
     expect(msgs[0].wasm.execute.contract_addr).toBe(ibcWasmAddress);
     expect(Object.keys(msgs[0].wasm.execute.msg)[0]).toBe('update_mapping_pair')
@@ -16,6 +15,9 @@ test('build-multisig', async () => {
     expect(Object.keys(msgs[2].wasm.execute.msg)[0]).toBe('provide_liquidity')
     expect(JSON.stringify(msgs[0].wasm.execute.msg.update_mapping_pair.asset_info)).toBe(JSON.stringify({ token: { contract_addr: cw20ContractAddress } }));
     expect(JSON.stringify(msgs[1].wasm.execute.msg.register_asset.asset_info)).toBe(JSON.stringify({ token: { contract_addr: cw20ContractAddress } }));
+
+    // failed case, when one of the params is null or empty
+    await expect(buildMultisigMessages({ cw20ContractAddress, remoteDenom: "foobar", remoteDecimals: "", ibcWasmAddress: ibcWasmAddress, pairAddress: pairAddress, lpAddress, localChannelId: "channel-29", stakingContract: stakingAddress, tokenCoingeckoId: "tron" })).rejects.toThrow();
 });
 
 test('build-multisig-propose-msg', async () => {

@@ -5,7 +5,7 @@ import { getCosmWasmClient } from "./cosmjs";
 import { buildMultisigMessages, buildMultisigProposeMsg } from './helpers';
 
 const envVariables = {
-    admin: process.env.MULTISIG_ADDRESS || "orai1fs25usz65tsryf0f8d5cpfmqgr0xwup4kjqpa0",
+    admin: process.env.MULTISIG_ADDRESS,
     ibcWasmAddress: "orai195269awwnt5m6c843q6w7hp8rt0k7syfu9de4h0wz384slshuzps8y7ccm",
     localChannelId: "channel-29",
     factory: process.env.FACTORY_CONTRACT,
@@ -51,7 +51,7 @@ async function listingMultisig(cw20ContractAddress: string) {
     // build propose msg for multisig
     const title = `Update mapping converter, create mining pool & provide initial liquidity for token with address ${cw20ContractAddress}`;
     const proposeMsg = buildMultisigProposeMsg(title, msgs);
-    const result = await client.execute(defaultAddress, envVariables.admin, proposeMsg, 'auto');
+    const result = await client.execute(defaultAddress, envVariables.admin as string, proposeMsg, 'auto');
     console.log("result: ", result);
 }
 

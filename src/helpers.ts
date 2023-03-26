@@ -22,12 +22,24 @@ async function getTokenAmount(oraiAmount: string, tokenCoingeckoId: string): Pro
 };
 
 function buildExecuteWasmMessage(contract_addr: string, msg: Object, funds?: Coin[]) {
+    // TODO: need to hardcode this part because the old structure of wasm message is execute.send, not funds
+    if (process.env.MULTISIG_ADDRESS === "orai1fs25usz65tsryf0f8d5cpfmqgr0xwup4kjqpa0") {
+        return {
+            wasm: {
+                execute: {
+                    contract_addr,
+                    msg,
+                    send: funds ? funds : []
+                }
+            }
+        }
+    }
     return {
         wasm: {
             execute: {
                 contract_addr,
                 msg,
-                send: funds ? funds : []
+                funds: funds ? funds : []
             }
         }
     }
@@ -37,6 +49,9 @@ export async function buildMultisigMessages(data: { cw20ContractAddress: string,
     const { cw20ContractAddress, remoteDecimals, remoteDenom, ibcWasmAddress, stakingContract, pairAddress, lpAddress, localChannelId, tokenCoingeckoId } = data;
     // update mapping converter 
     let msgs: any[] = [];
+    if (Object.values(data).filter(value => !value).length > 0) {
+        throw new Error("Invalid params");
+    }
     const updateMappingMsg: ExecuteIbcWasmMsg = {
         update_mapping_pair: {
             asset_info: { token: { contract_addr: cw20ContractAddress } },
