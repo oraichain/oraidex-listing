@@ -5,7 +5,7 @@ import { getCosmWasmClient } from "./cosmjs";
 import { buildMultisigMessages, buildMultisigProposeMsg } from './helpers';
 
 const envVariables = {
-    admin: "orai1fs25usz65tsryf0f8d5cpfmqgr0xwup4kjqpa0",
+    admin: process.env.MULTISIG_ADDRESS || "orai1fs25usz65tsryf0f8d5cpfmqgr0xwup4kjqpa0",
     ibcWasmAddress: "orai195269awwnt5m6c843q6w7hp8rt0k7syfu9de4h0wz384slshuzps8y7ccm",
     localChannelId: "channel-29",
     factory: process.env.FACTORY_CONTRACT,
