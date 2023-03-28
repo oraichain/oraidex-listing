@@ -2,6 +2,7 @@ import { Coin } from "@cosmjs/amino";
 import { ExecuteMsg as ExecuteIbcWasmMsg } from "./contracts/Cw20Ics20.types";
 import { ExecuteMsg as ExecutePairMsg } from "./contracts/OraiswapPair.types";
 import { ExecuteMsg as ExecuteStakingMsg } from "./contracts/OraiswapStaking.types";
+import { ExecuteMsg as ExecuteTokenMsg } from "./contracts/OraiswapToken.types";
 
 async function httpGet(url: string) {
     const data = await fetch(url).then(data => data.json());
@@ -71,7 +72,16 @@ export async function buildMultisigMessages(data: { cw20ContractAddress: string,
         }
     }
     msgs.push(buildExecuteWasmMessage(stakingContract, createMiningPoolMsg));
-    // TODO: add increase allowance msg for the pair contract to provide lp later
+
+    // add increase allowance msg for the pair contract to provide lp later
+    const increaseAllowanceMsg: ExecuteTokenMsg = {
+        increase_allowance: {
+            amount: "100000000000", // hard-coded 10k amount allowance. Not high but not low, just to be safe
+            spender: pairAddress
+        }
+    }
+    msgs.push(buildExecuteWasmMessage(cw20ContractAddress, increaseAllowanceMsg));
+
     // provide liquidity
     const oraiAmount = "1000000";
     const tokenAmount = await getTokenAmount(oraiAmount, tokenCoingeckoId);
