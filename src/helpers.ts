@@ -71,7 +71,7 @@ export async function buildMultisigMessages(data: { cw20ContractAddress: string,
         }
     }
     msgs.push(buildExecuteWasmMessage(stakingContract, createMiningPoolMsg));
-
+    // TODO: add increase allowance msg for the pair contract to provide lp later
     // provide liquidity
     const oraiAmount = "1000000";
     const tokenAmount = await getTokenAmount(oraiAmount, tokenCoingeckoId);

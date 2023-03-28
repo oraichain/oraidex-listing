@@ -16,11 +16,19 @@ const envVariables = {
     tokenCoingeckoId: process.env.COINGECKO_ID,
 }
 
+const constants = {
+    codeId: 761,
+    adminInitialBalances: "10000000000",
+    devInitialBalances: "20000000",
+    ibcWasmInitialBalances: "1000000000",
+    cw20Decimals: 6,
+    devAddress: "orai1g4h64yjt0fvzv5v2j8tyfnpe5kmnetejvfgs7g"
+}
+
 async function deployCw20Token(tokenSymbol: string) {
-    const codeId = 761;
     const { admin, ibcWasmAddress } = envVariables;
     const { client, defaultAddress } = await getCosmWasmClient();
-    const instantiateResult = await client.instantiate(defaultAddress, codeId, { "mint": { "minter": admin }, "name": `${tokenSymbol} token`, "symbol": tokenSymbol, "decimals": 6, "initial_balances": [{ "amount": "10000000000", "address": admin }, { "amount": "20000000", "address": "orai1g4h64yjt0fvzv5v2j8tyfnpe5kmnetejvfgs7g" }, { "amount": "1000000000", "address": ibcWasmAddress }] }, `Production CW20 ${tokenSymbol} token`, 'auto', { admin });
+    const instantiateResult = await client.instantiate(defaultAddress, constants.codeId, { "mint": { "minter": admin }, "name": `${tokenSymbol} token`, "symbol": tokenSymbol, "decimals": constants.cw20Decimals, "initial_balances": [{ "amount": constants.adminInitialBalances, "address": admin }, { "amount": constants.devInitialBalances, "address": constants.devAddress }, { "amount": constants.ibcWasmInitialBalances, "address": ibcWasmAddress }] }, `Production CW20 ${tokenSymbol} token`, 'auto', { admin });
     return instantiateResult.contractAddress;
 }
 
