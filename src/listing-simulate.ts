@@ -7,6 +7,7 @@ import { InstantiateMsg as FactoryInstantiateMsg } from './contracts/OraiswapFac
 import { InstantiateMsg as StakingInstantiateMsg } from './contracts/OraiswapStaking.types';
 import { InstantiateMsg as OraiswapTokenInstantiateMsg } from './contracts/OraiswapToken.types';
 
+const client = getSimulateCosmWasmClient();
 const envVariables = {
     localChannelId: "channel-29",
     tokenSymbol: process.env.TOKEN_SYMBOL || "FOOBAR",
@@ -15,9 +16,8 @@ const envVariables = {
     tokenCoingeckoId: process.env.COINGECKO_ID,
 }
 
-async function deployOraiDexContracts(): Promise<{ multisig: string, ibcWasmAddress: string, factory: string, staking: string }> {
+async function deployOraiDexContracts(): Promise<{ multisig: string, ibcWasmAddress: string, factory: string, staking: string, tokenCodeId: number }> {
     const { devAddress } = constants;
-    const client = getSimulateCosmWasmClient();
     // deploy fixed multisig
     const multisig = await client.deploy(
         devAddress,
@@ -48,22 +48,21 @@ async function deployOraiDexContracts(): Promise<{ multisig: string, ibcWasmAddr
     const pairCodeId = client.upload(devAddress, 'wasm/oraiswap_pair.wasm').codeId;
     const lpCodeId = client.upload(devAddress, 'wasm/oraiswap_token.wasm').codeId;
 
-    console.log("ibc wasm: ", ibcWasm.contractAddress)
+    // deploy oracle addr
+    const oracle = await client.deploy(devAddress, 'wasm/oraiswap_oracle.wasm', {}, 'oracle');
     // deploy factory contract
     const factory = await client.deploy(
         devAddress,
         'wasm/oraiswap_factory.wasm',
         {
             commission_rate: null,
-            oracle_addr: devAddress,
+            oracle_addr: oracle.contractAddress,
             pair_code_id: pairCodeId,
             token_code_id: lpCodeId,
 
         } as FactoryInstantiateMsg,
         'factory'
     );
-    console.log("factory address: ", factory.contractAddress)
-
     // deploy staking contract address
     const staking = await client.deploy(
         devAddress,
@@ -72,7 +71,7 @@ async function deployOraiDexContracts(): Promise<{ multisig: string, ibcWasmAddr
             base_denom: "orai",
             factory_addr: factory.contractAddress,
             minter: null,
-            oracle_addr: devAddress,
+            oracle_addr: oracle.contractAddress,
             owner: devAddress,
             rewarder: devAddress,
 
@@ -80,20 +79,27 @@ async function deployOraiDexContracts(): Promise<{ multisig: string, ibcWasmAddr
         'staking'
     );
 
-    return { multisig: multisig.contractAddress, ibcWasmAddress: ibcWasm.contractAddress, factory: factory.contractAddress, staking: staking.contractAddress };
+    return { multisig: multisig.contractAddress, ibcWasmAddress: ibcWasm.contractAddress, factory: factory.contractAddress, staking: staking.contractAddress, tokenCodeId: lpCodeId };
 }
 
-async function instantiateCw20Token(admin: string, ibcWasmAddress: string, tokenSymbol: string): Promise<string> {
-    const client = getSimulateCosmWasmClient();
-    const result = await client.deploy(constants.devAddress, 'wasm/oraiswap_token.wasm', { mint: { "minter": admin }, name: `${tokenSymbol} token`, symbol: tokenSymbol, decimals: constants.cw20Decimals, initial_balances: [{ "amount": constants.adminInitialBalances, "address": admin }, { "amount": constants.devInitialBalances, "address": constants.devAddress }, { "amount": constants.ibcWasmInitialBalances, "address": ibcWasmAddress }], marketing: null } as OraiswapTokenInstantiateMsg, 'cw20');
+async function instantiateCw20Token(admin: string, ibcWasmAddress: string, tokenSymbol: string, codeId: number): Promise<string> {
+    const result = await client.instantiate(constants.devAddress, codeId, { mint: { "minter": admin }, name: `${tokenSymbol} token`, symbol: tokenSymbol, decimals: constants.cw20Decimals, initial_balances: [{ "amount": constants.adminInitialBalances, "address": admin }, { "amount": constants.devInitialBalances, "address": constants.devAddress }, { "amount": constants.ibcWasmInitialBalances, "address": ibcWasmAddress }], marketing: null } as OraiswapTokenInstantiateMsg, 'cw20');
     return result.contractAddress;
+}
+
+async function addPairAndLpToken(factory: string, cw20ContractAddress: string) {
+    const result = await client.execute(constants.devAddress, factory, { create_pair: { asset_infos: [{ native_token: { denom: "orai" } }, { token: { contract_addr: cw20ContractAddress } }] } }, 'auto');
+    console.log("result: ", result);
+    const pair = await client.queryContractSmart(factory, { pairs: { asset_infos: [{ token: { contract_addr: cw20ContractAddress } }, { native_token: { denom: "orai" } }] } });
+    console.log("pair: ", pair)
 }
 
 async function run() {
     try {
-        const { multisig, ibcWasmAddress, factory, staking } = await deployOraiDexContracts();
-        const result = await instantiateCw20Token(multisig, ibcWasmAddress, envVariables.tokenSymbol as string);
+        const { multisig, ibcWasmAddress, factory, staking, tokenCodeId } = await deployOraiDexContracts();
+        const result = await instantiateCw20Token(multisig, ibcWasmAddress, envVariables.tokenSymbol as string, tokenCodeId);
         console.log("cw20 result: ", result);
+        await addPairAndLpToken(factory, result);
     } catch (error) {
         console.log("error running the listing script: ", error);
     }
