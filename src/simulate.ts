@@ -10,6 +10,8 @@ import { CWSimulateApp, CWSimulateAppOptions, AppResponse } from '@terran-one/cw
 import { sha256 } from '@cosmjs/crypto';
 import { toHex } from '@cosmjs/encoding';
 import { Coin, StdFee } from '@cosmjs/stargate';
+import { readFileSync } from 'fs';
+import path from 'path';
 
 export class SimulateCosmWasmClient extends CosmWasmClient {
     private readonly app: CWSimulateApp;
@@ -19,8 +21,11 @@ export class SimulateCosmWasmClient extends CosmWasmClient {
         this.app = new CWSimulateApp(option);
     }
 
-    public upload(senderAddress: string, wasmCode: Uint8Array): UploadResult {
+    public upload(senderAddress: string, wasmPath: string): UploadResult {
         // import the wasm bytecode
+        const wasmCode = readFileSync(
+            path.resolve(__dirname, wasmPath)
+        );
         const originalChecksum = toHex(sha256(wasmCode));
         const codeId = this.app.wasm.create(senderAddress, wasmCode);
         return {
@@ -66,6 +71,19 @@ export class SimulateCosmWasmClient extends CosmWasmClient {
             gasWanted: 0,
             gasUsed: 0
         };
+    }
+
+    public async deploy(
+        senderAddress: string,
+        wasmPath: string,
+        msg: JsonObject,
+        label: string,
+        _fee?: StdFee | 'auto' | number,
+        options?: InstantiateOptions
+    ): Promise<InstantiateResult> {
+        // upload and instantiate the contract
+        const { codeId } = this.upload(senderAddress, wasmPath);
+        return this.instantiate(senderAddress, codeId, msg, label, _fee, options);
     }
 
     public async execute(

@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
 dotenv.config()
 import { getCosmWasmClient } from "./cosmjs";
-import { buildMultisigMessages, buildMultisigProposeMsg } from './helpers';
+import { buildMultisigMessages, buildMultisigProposeMsg, constants } from './helpers';
 
 const envVariables = {
     admin: process.env.MULTISIG_ADDRESS,
@@ -14,15 +14,6 @@ const envVariables = {
     remoteDenom: process.env.REMOTE_DENOM, // denom of the token on OraiBridge
     remoteDecimals: process.env.REMOTE_DECIMALS, // deciamsl of the token on OraiBridge
     tokenCoingeckoId: process.env.COINGECKO_ID,
-}
-
-const constants = {
-    codeId: 761,
-    adminInitialBalances: "10000000000",
-    devInitialBalances: "20000000",
-    ibcWasmInitialBalances: "1000000000",
-    cw20Decimals: 6,
-    devAddress: "orai1g4h64yjt0fvzv5v2j8tyfnpe5kmnetejvfgs7g"
 }
 
 async function deployCw20Token(tokenSymbol: string) {

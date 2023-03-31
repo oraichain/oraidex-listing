@@ -17,6 +17,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "npx ts-node src/index.ts",
+    "start-simulate": "npx ts-node src/listing-simulate.ts",
     "test": "jest"
   }
 }

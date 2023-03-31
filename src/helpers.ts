@@ -104,3 +104,12 @@ export function buildMultisigProposeMsg(title: string, msgs: any[]) {
     }
     return proposeMsg
 }
+
+export const constants = {
+    codeId: 761,
+    adminInitialBalances: "10000000000",
+    devInitialBalances: "20000000",
+    ibcWasmInitialBalances: "1000000000",
+    cw20Decimals: 6,
+    devAddress: "orai1g4h64yjt0fvzv5v2j8tyfnpe5kmnetejvfgs7g"
+};
