@@ -69,14 +69,14 @@ async function listingMultisig(cw20ContractAddress: string) {
     // build multiple wasm msgs for multisig
     const msgs = await buildMultisigMessages({
         cw20ContractAddress,
-        remoteDecimals: remoteDecimals as string,
-        remoteDenom: remoteDenom as string,
+        remoteDecimals: remoteDecimals,
+        remoteDenom: remoteDenom,
         ibcWasmAddress,
         pairAddress: pairInfo.contract_addr,
         localChannelId,
         lpAddress: pairInfo.liquidity_token,
-        stakingContract: staking as string,
-        tokenCoingeckoId: tokenCoingeckoId as string
+        stakingContract: staking,
+        tokenCoingeckoId: tokenCoingeckoId
     });
 
     // build propose msg for multisig
