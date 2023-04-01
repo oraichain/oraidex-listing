@@ -972,10 +972,9 @@
   resolved "https://registry.yarnpkg.com/@substrate/ss58-registry/-/ss58-registry-1.39.0.tgz#eb916ff5fea7fa02e77745823fde21af979273d2"
   integrity sha512-qZYpuE6n+mwew+X71dOur/CbMXj6rNW27o63JeJwdQH/GvcSKm3JLNhd+bGzwUKg0D/zD30Qc6p4JykArzM+tA==
 
-"@terran-one/cosmwasm-vm-js@^0.2.16":
+"@terran-one/cosmwasm-vm-js@https://github.com/oraichain/cosmwasm-vm-js.git":
   version "0.2.16"
-  resolved "https://registry.yarnpkg.com/@terran-one/cosmwasm-vm-js/-/cosmwasm-vm-js-0.2.16.tgz#6d163bd12347b7148e2783811a723fffe68dd948"
-  integrity sha512-z+3EV7qPEiC7SrImYws0bGanh/hRjW3SozcnkIWlnMdhX1SvdmhkIWevJsyxBCM/p1VhQAMYIvBvWkWy0vHlYg==
+  resolved "https://github.com/oraichain/cosmwasm-vm-js.git#5a307c5c6237ab17b4d36c4ea8896a9296ec07eb"
   dependencies:
     "@cosmjs/crypto" "^0.28.4"
     "@cosmjs/encoding" "^0.28.4"
@@ -983,7 +982,8 @@
     "@polkadot/util-crypto" "^10.1.11"
     "@types/elliptic" "^6.4.14"
     "@types/secp256k1" "^4.0.3"
-    bech32 "^2.0.0"
+    bech32 "1.1.4"
+    cosmwasm-vm-js-zk "https://github.com/oraichain/cosmwasm-vm-js-zk.git"
     elliptic "^6.5.4"
     immutable "^4.1.0"
     process "^0.11.10"
@@ -991,16 +991,15 @@
     synchronized-promise "^0.3.1"
     util "^0.12.4"
 
-"@terran-one/cw-simulate@^2.8.4":
+"@terran-one/cw-simulate@https://github.com/oraichain/cw-simulate.git":
   version "2.8.4"
-  resolved "https://registry.yarnpkg.com/@terran-one/cw-simulate/-/cw-simulate-2.8.4.tgz#e34d0f3f4bccb150c7df6be03397c97e08637a0f"
-  integrity sha512-9aOzg7X8W8/WSy1gCgVcyL7IcxCcsdOiDqV0Xmf9eY2UGYJ6VZzFrZ8LSbWyPX1aWAFr7Jjc6PLbORANlxJtUQ==
+  resolved "https://github.com/oraichain/cw-simulate.git#52987232c34d827853dc3bc05305c7cbd31c0de1"
   dependencies:
     "@cosmjs/amino" "^0.28.13"
     "@cosmjs/crypto" "^0.28.13"
     "@cosmjs/encoding" "^0.28.13"
     "@kiruse/serde" "^0.6.3"
-    "@terran-one/cosmwasm-vm-js" "^0.2.16"
+    "@terran-one/cosmwasm-vm-js" "https://github.com/oraichain/cosmwasm-vm-js.git"
     immutable "^4.1.0"
     lobyte "^0.0.3"
     lodash "^4.17.21"
@@ -1261,7 +1260,7 @@ base64-js@^1.3.0:
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
 
-bech32@^1.1.4:
+bech32@1.1.4, bech32@^1.1.4:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
   integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
@@ -1462,6 +1461,10 @@ cosmjs-types@^0.7.1:
   dependencies:
     long "^4.0.0"
     protobufjs "~6.11.2"
+
+"cosmwasm-vm-js-zk@https://github.com/oraichain/cosmwasm-vm-js-zk.git":
+  version "0.0.0"
+  resolved "https://github.com/oraichain/cosmwasm-vm-js-zk.git#92f31a12b096c87fc1e4ea8552e8b184ed0ff8c8"
 
 cross-spawn@^7.0.3:
   version "7.0.3"
@@ -2923,10 +2926,10 @@ type-fest@^0.21.3:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.21.3.tgz#d260a24b0198436e133fa26a524a6d65fa3b2e37"
   integrity sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w==
 
-typescript@^5.0.2:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.0.2.tgz#891e1a90c5189d8506af64b9ef929fca99ba1ee5"
-  integrity sha512-wVORMBGO/FAs/++blGNeAVdbNKtIh1rbBL2EyQ1+J9lClJ93KiiKe8PmFIVdXhHcyv44SL9oglmfeSsndo0jRw==
+typescript@^4.8.3:
+  version "4.9.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
+  integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 update-browserslist-db@^1.0.10:
   version "1.0.10"
