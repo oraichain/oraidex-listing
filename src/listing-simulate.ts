@@ -132,7 +132,7 @@ async function addPairAndLpToken(factory: string, cw20ContractAddress: string) {
   );
   console.log('result: ', result);
   const pair = await client.queryContractSmart(factory, {
-    pairs: { asset_infos: [{ token: { contract_addr: cw20ContractAddress } }, { native_token: { denom: 'orai' } }] }
+    pair: { asset_infos: [{ token: { contract_addr: cw20ContractAddress } }, { native_token: { denom: 'orai' } }] }
   });
   console.log('pair: ', pair);
 }
