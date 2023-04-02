@@ -14,7 +14,6 @@
     "@cosmjs/cosmwasm-stargate": "^0.30.1",
     "@cosmjs/proto-signing": "^0.30.1",
     "@cosmjs/stargate": "^0.30.1",
-    "@terran-one/cosmwasm-vm-js": "https://github.com/oraichain/cosmwasm-vm-js.git",
     "@terran-one/cw-simulate": "https://github.com/oraichain/cw-simulate.git",
     "dotenv": "^16.0.3"
   },
