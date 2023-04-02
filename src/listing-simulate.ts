@@ -8,6 +8,7 @@ import { InstantiateMsg as StakingInstantiateMsg } from './contracts/OraiswapSta
 import { InstantiateMsg as OraiswapTokenInstantiateMsg } from './contracts/OraiswapToken.types';
 import { readFileSync } from 'fs';
 import path from 'path';
+import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
 
 const client = getSimulateCosmWasmClient();
 const envVariables = {
@@ -120,19 +121,17 @@ async function instantiateCw20Token(
 }
 
 async function addPairAndLpToken(factory: string, cw20ContractAddress: string) {
-  const result = await client.execute(
-    constants.devAddress,
-    factory,
+  const factoryContract = new OraiswapFactoryClient(client, constants.devAddress, factory);
+  const assetInfos = [{ native_token: { denom: 'orai' } }, { token: { contract_addr: cw20ContractAddress } }];
+  const result = await factoryContract.createPair(
     {
-      create_pair: {
-        asset_infos: [{ native_token: { denom: 'orai' } }, { token: { contract_addr: cw20ContractAddress } }]
-      }
+      assetInfos
     },
     'auto'
   );
   console.log('result: ', result);
-  const pair = await client.queryContractSmart(factory, {
-    pair: { asset_infos: [{ token: { contract_addr: cw20ContractAddress } }, { native_token: { denom: 'orai' } }] }
+  const pair = await factoryContract.pair({
+    assetInfos
   });
   console.log('pair: ', pair);
 }
