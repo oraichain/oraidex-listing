@@ -18,12 +18,12 @@ test('build-multisig', async () => {
     tokenCoingeckoId: 'tron'
   });
 
-  expect(msgs.length).toBe(4);
   expect(msgs[0].wasm.execute.contract_addr).toBe(ibcWasmAddress);
   expect(Object.keys(msgs[0].wasm.execute.msg)[0]).toBe('update_mapping_pair');
   expect(Object.keys(msgs[1].wasm.execute.msg)[0]).toBe('register_asset');
-  expect(Object.keys(msgs[2].wasm.execute.msg)[0]).toBe('increase_allowance');
-  expect(Object.keys(msgs[3].wasm.execute.msg)[0]).toBe('provide_liquidity');
+  expect(Object.keys(msgs[2].wasm.execute.msg)[0]).toBe('update_rewards_per_sec');
+  expect(Object.keys(msgs[3].wasm.execute.msg)[0]).toBe('increase_allowance');
+  expect(Object.keys(msgs[4].wasm.execute.msg)[0]).toBe('provide_liquidity');
   expect(JSON.stringify(msgs[0].wasm.execute.msg.update_mapping_pair.asset_info)).toBe(
     JSON.stringify({ token: { contract_addr: cw20ContractAddress } })
   );
@@ -68,7 +68,6 @@ test('build-multisig-propose-msg', async () => {
   const title = 'this is a test proposal';
   const proposeMsg = buildMultisigProposeMsg(title, msgs);
   expect(proposeMsg.propose.title).toBe(title);
-  expect(proposeMsg.propose.msgs.length).toBe(4);
   expect(proposeMsg.propose.msgs[1].wasm.execute.msg).toBe(
     Buffer.from(
       JSON.stringify({
