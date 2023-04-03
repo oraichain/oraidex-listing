@@ -1,14 +1,15 @@
+import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-dotenv.config();
-import { getSimulateCosmWasmClient } from './cosmjs';
-import { buildMultisigMessages, buildMultisigProposeMsg, constants } from './helpers';
+import { readFileSync } from 'fs';
+import path from 'path';
 import { InstantiateMsg as IbcWasmInstantiateMsg } from './contracts/Cw20Ics20.types';
+import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
 import { InstantiateMsg as FactoryInstantiateMsg } from './contracts/OraiswapFactory.types';
 import { InstantiateMsg as StakingInstantiateMsg } from './contracts/OraiswapStaking.types';
 import { InstantiateMsg as OraiswapTokenInstantiateMsg } from './contracts/OraiswapToken.types';
-import { readFileSync } from 'fs';
-import path from 'path';
-import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
+import { getSimulateCosmWasmClient } from './cosmjs';
+import { constants } from './helpers';
+dotenv.config();
 
 const client = getSimulateCosmWasmClient();
 const envVariables = {
@@ -19,6 +20,17 @@ const envVariables = {
   tokenCoingeckoId: process.env.COINGECKO_ID
 };
 
+async function deployContract(
+  senderAddress: string,
+  wasmPath: string,
+  msg: any,
+  label: string
+): Promise<InstantiateResult> {
+  const { codeId } = await client.upload(senderAddress, readFileSync(wasmPath), 'auto');
+  const result = await client.instantiate(senderAddress, codeId, msg, label, 'auto');
+  return result;
+}
+
 async function deployOraiDexContracts(): Promise<{
   multisig: string;
   ibcWasmAddress: string;
@@ -28,7 +40,7 @@ async function deployOraiDexContracts(): Promise<{
 }> {
   const { devAddress } = constants;
   // deploy fixed multisig
-  const multisig = await client.deploy(
+  const multisig = await deployContract(
     devAddress,
     path.join(__dirname, 'wasm/cw3-fixed-multisig.wasm'),
     {
@@ -39,7 +51,7 @@ async function deployOraiDexContracts(): Promise<{
     'cw3-fixed-multisig'
   );
   // deploy ibc wasm
-  const ibcWasm = await client.deploy(
+  const ibcWasm = await deployContract(
     devAddress,
     path.join(__dirname, 'wasm/cw-ics20-latest.wasm'),
     {
@@ -51,15 +63,20 @@ async function deployOraiDexContracts(): Promise<{
     'cw-ics20'
   );
   // upload pair & lp token code id
-  const pairCodeId = (await client.upload(devAddress, readFileSync(path.join(__dirname, 'wasm/oraiswap_pair.wasm'))))
-    .codeId;
-  const lpCodeId = (await client.upload(devAddress, readFileSync(path.join(__dirname, 'wasm/oraiswap_token.wasm'))))
-    .codeId;
-
+  const { codeId: pairCodeId } = await client.upload(
+    devAddress,
+    readFileSync(path.join(__dirname, 'wasm/oraiswap_pair.wasm')),
+    'auto'
+  );
+  const { codeId: lpCodeId } = await client.upload(
+    devAddress,
+    readFileSync(path.join(__dirname, 'wasm/oraiswap_token.wasm')),
+    'auto'
+  );
   // deploy oracle addr
-  const oracle = await client.deploy(devAddress, path.join(__dirname, 'wasm/oraiswap_oracle.wasm'), {}, 'oracle');
+  const oracle = await deployContract(devAddress, path.join(__dirname, 'wasm/oraiswap_oracle.wasm'), {}, 'oracle');
   // deploy factory contract
-  const factory = await client.deploy(
+  const factory = await deployContract(
     devAddress,
     path.join(__dirname, 'wasm/oraiswap_factory.wasm'),
     {
@@ -71,7 +88,7 @@ async function deployOraiDexContracts(): Promise<{
     'factory'
   );
   // deploy staking contract address
-  const staking = await client.deploy(
+  const staking = await deployContract(
     devAddress,
     path.join(__dirname, 'wasm/oraiswap_staking.wasm'),
     {
@@ -115,7 +132,8 @@ async function instantiateCw20Token(
       ],
       marketing: null
     } as OraiswapTokenInstantiateMsg,
-    'cw20'
+    'cw20',
+    'auto'
   );
   return result.contractAddress;
 }
