@@ -2,14 +2,14 @@ import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-
 dotenv.config();
 import { getSimulateCosmWasmClient } from './cosmjs';
 import { buildMultisigMessages, constants } from './helpers';
-import { InstantiateMsg as IbcWasmInstantiateMsg } from './contracts/oraiswap/Cw20Ics20.types';
-import { InstantiateMsg as FactoryInstantiateMsg } from './contracts/oraiswap/OraiswapFactory.types';
-import { InstantiateMsg as StakingInstantiateMsg } from './contracts/oraiswap/OraiswapStaking.types';
-import { InstantiateMsg as OraiswapTokenInstantiateMsg } from './contracts/oraiswap/OraiswapToken.types';
+import { InstantiateMsg as IbcWasmInstantiateMsg } from './contracts/CwIcs20Latest.types';
+import { InstantiateMsg as FactoryInstantiateMsg } from './contracts/OraiswapFactory.types';
+import { InstantiateMsg as StakingInstantiateMsg } from './contracts/OraiswapStaking.types';
+import { InstantiateMsg as OraiswapTokenInstantiateMsg } from './contracts/OraiswapToken.types';
 import { readFileSync } from 'fs';
 import path from 'path';
-import { OraiswapFactoryClient } from './contracts/oraiswap/OraiswapFactory.client';
-import { Cw3FixedMultisigClient, Cw3FixedMultisigQueryClient } from './contracts/mult-sig/Cw3FixedMultisig.client';
+import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
+import { Cw3FixedMultisigClient, Cw3FixedMultisigQueryClient } from './contracts/Cw3FixedMultisig.client';
 
 const client = getSimulateCosmWasmClient();
 const envVariables = {

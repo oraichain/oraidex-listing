@@ -1,9 +1,9 @@
 import { Coin } from '@cosmjs/amino';
-import { ExecuteMsg as ExecuteIbcWasmMsg } from './contracts/oraiswap/Cw20Ics20.types';
-import { ExecuteMsg as ExecutePairMsg } from './contracts/oraiswap/OraiswapPair.types';
-import { ExecuteMsg as ExecuteStakingMsg } from './contracts/oraiswap/OraiswapStaking.types';
-import { ExecuteMsg as ExecuteTokenMsg } from './contracts/oraiswap/OraiswapToken.types';
-import { Asset } from './contracts/oraiswap/types';
+import { ExecuteMsg as ExecuteIbcWasmMsg } from './contracts/CwIcs20Latest.types';
+import { ExecuteMsg as ExecutePairMsg } from './contracts/OraiswapPair.types';
+import { ExecuteMsg as ExecuteStakingMsg } from './contracts/OraiswapStaking.types';
+import { ExecuteMsg as ExecuteTokenMsg } from './contracts/OraiswapToken.types';
+import { Asset } from './contracts/types';
 
 async function httpGet(url: string) {
     const data = await fetch(url).then((data) => data.json());
