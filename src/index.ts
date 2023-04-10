@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-import { OraiswapFactoryClient } from './contracts/oraiswap/OraiswapFactory.client';
+import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
 dotenv.config();
 import { getCosmWasmClient } from './cosmjs';
 import { buildMultisigMessages, buildMultisigProposeMsg, constants } from './helpers';

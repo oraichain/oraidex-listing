@@ -1,3 +1,4 @@
+import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config();
 import { getSimulateCosmWasmClient } from './cosmjs';
@@ -52,11 +53,16 @@ async function deployOraiDexContracts(): Promise<{
     'cw-ics20'
   );
   // upload pair & lp token code id
-  const pairCodeId = (await client.upload(devAddress, readFileSync(path.join(__dirname, 'wasm/oraiswap_pair.wasm'))))
-    .codeId;
-  const lpCodeId = (await client.upload(devAddress, readFileSync(path.join(__dirname, 'wasm/oraiswap_token.wasm'))))
-    .codeId;
-
+  const { codeId: pairCodeId } = await client.upload(
+    devAddress,
+    readFileSync(path.join(__dirname, 'wasm/oraiswap_pair.wasm')),
+    'auto'
+  );
+  const { codeId: lpCodeId } = await client.upload(
+    devAddress,
+    readFileSync(path.join(__dirname, 'wasm/oraiswap_token.wasm')),
+    'auto'
+  );
   // deploy oracle addr
   const oracle = await client.deploy(devAddress, path.join(__dirname, 'wasm/oraiswap_oracle.wasm'), {}, 'oracle');
   // deploy factory contract
@@ -116,14 +122,18 @@ async function instantiateCw20Token(
       ],
       marketing: null
     } as OraiswapTokenInstantiateMsg,
-    'cw20'
+    'cw20',
+    'auto'
   );
   return result.contractAddress;
 }
 
 async function addPairAndLpToken(factory: string, cw20ContractAddress: string) {
   const factoryContract = new OraiswapFactoryClient(client, constants.devAddress, factory);
-  const assetInfos = [{ native_token: { denom: constants.oraiDenom } }, { token: { contract_addr: cw20ContractAddress } }];
+  const assetInfos = [
+    { native_token: { denom: constants.oraiDenom } },
+    { token: { contract_addr: cw20ContractAddress } }
+  ];
   await factoryContract.createPair(
     {
       assetInfos
@@ -175,7 +185,7 @@ async function listingMultisig(
   // has to split two types of clients because if using the same interface, there will be conflict on the 'vote' entrypoint of execute & query
   const multisigQuery = new Cw3FixedMultisigQueryClient(client, multisig);
   const queryResult = await multisigQuery.listProposals({});
-  console.log(queryResult.proposals[0].msgs)
+  console.log(queryResult.proposals[0].msgs);
 }
 
 async function run() {

@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@cosmjs/encoding": "0.29.5",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.8",
     "bech32": "^2.0.0",
@@ -10,10 +9,11 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "@cosmjs/amino": "0.29.5",
-    "@cosmjs/cosmwasm-stargate": "0.29.5",
-    "@cosmjs/proto-signing": "0.29.5",
-    "@cosmjs/stargate": "0.29.5",
+    "@cosmjs/amino": "^0.29.5",
+    "@cosmjs/cosmwasm-stargate": "^0.29.5",
+    "@cosmjs/encoding": "^0.29.5",
+    "@cosmjs/proto-signing": "^0.29.5",
+    "@cosmjs/stargate": "^0.29.5",
     "@terran-one/cw-simulate": "https://github.com/oraichain/cw-simulate.git",
     "dotenv": "^16.0.3"
   },
