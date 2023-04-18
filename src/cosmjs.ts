@@ -1,5 +1,6 @@
 import { AccountData } from "@cosmjs/amino";
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import { SigningStargateClient } from "@cosmjs/stargate";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { GasPrice } from "@cosmjs/stargate";
 import { SimulateCosmWasmClient } from "@terran-one/cw-simulate/src";
@@ -19,6 +20,15 @@ export async function getCosmWasmClient() {
     const { accounts, wallet } = await getWallet();
     const defaultAddress = accounts[0].address;
     const client = await SigningCosmWasmClient.connectWithSigner(process.env.RPC_URL as string, wallet, {
+        gasPrice: GasPrice.fromString(process.env.GAS_PRICES as string)
+    });
+    return { client, defaultAddress, wallet };
+}
+
+export async function getSigningStargateClient() {
+    const { accounts, wallet } = await getWallet();
+    const defaultAddress = accounts[0].address;
+    const client = await SigningStargateClient.connectWithSigner(process.env.RPC_URL as string, wallet, {
         gasPrice: GasPrice.fromString(process.env.GAS_PRICES as string)
     });
     return { client, defaultAddress, wallet };

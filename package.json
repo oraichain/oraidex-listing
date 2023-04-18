@@ -15,6 +15,7 @@
     "@cosmjs/proto-signing": "^0.29.5",
     "@cosmjs/stargate": "^0.29.5",
     "@terran-one/cw-simulate": "https://github.com/oraichain/cw-simulate.git",
+    "cosmjs-types": "^0.7.2",
     "dotenv": "^16.0.3"
   },
   "main": "src/index.ts",

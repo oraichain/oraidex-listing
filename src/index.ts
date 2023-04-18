@@ -1,48 +1,44 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
+import { InstantiateMsg as Cw20InstantiateMsg } from './contracts/OraiswapToken.types';
 dotenv.config();
-import { getCosmWasmClient } from './cosmjs';
-import { buildMultisigMessages, buildMultisigProposeMsg, constants } from './helpers';
+import { getCosmWasmClient, getSigningStargateClient } from './cosmjs';
+import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+import { Any } from "cosmjs-types/google/protobuf/any";
 
-const envVariables = {
-    admin: process.env.MULTISIG_ADDRESS,
-    ibcWasmAddress: 'orai195269awwnt5m6c843q6w7hp8rt0k7syfu9de4h0wz384slshuzps8y7ccm',
-    localChannelId: 'channel-29',
-    factory: process.env.FACTORY_CONTRACT,
-    staking: process.env.STAKING_CONTRACT,
-    tokenSymbol: process.env.TOKEN_SYMBOL,
-    remoteDenom: process.env.REMOTE_DENOM, // denom of the token on OraiBridge
-    remoteDecimals: process.env.REMOTE_DECIMALS, // deciamsl of the token on OraiBridge
-    tokenCoingeckoId: process.env.COINGECKO_ID
+export const constants = {
+    codeId: 761,
+    cw20Decimals: 6,
+    oraiDenom: 'orai',
+    factory: "orai167r4ut7avvgpp3rlzksz6vw5spmykluzagvmj3ht845fjschwugqjsqhst",
 };
 
-async function deployCw20Token(tokenSymbol: string) {
-    const { admin, ibcWasmAddress } = envVariables;
+const envVariables = {
+    tokenSymbol: process.env.TOKEN_SYMBOL,
+};
+
+async function deployCw20Token(tokenSymbol: string, cap?: string) {
     const { client, defaultAddress } = await getCosmWasmClient();
     const instantiateResult = await client.instantiate(
         defaultAddress,
         constants.codeId,
         {
-            mint: { minter: admin },
+            mint: { minter: defaultAddress, cap },
             name: `${tokenSymbol} token`,
             symbol: tokenSymbol,
             decimals: constants.cw20Decimals,
-            initial_balances: [
-                { amount: constants.adminInitialBalances, address: admin },
-                { amount: constants.devInitialBalances, address: constants.devAddress },
-                { amount: constants.ibcWasmInitialBalances, address: ibcWasmAddress }
-            ]
-        },
+            initial_balances: []
+        } as Cw20InstantiateMsg,
         `Production CW20 ${tokenSymbol} token`,
         'auto',
-        { admin }
+        { admin: defaultAddress }
     );
     return instantiateResult.contractAddress;
 }
 
 async function addPairAndLpToken(cw20ContractAddress: string) {
     const { client, defaultAddress } = await getCosmWasmClient();
-    const factoryContract = new OraiswapFactoryClient(client, defaultAddress, envVariables.factory as string);
+    const factoryContract = new OraiswapFactoryClient(client, defaultAddress, constants.factory as string);
 
     const result = await factoryContract.createPair({
         assetInfos: [{ native_token: { denom: 'orai' } }, { token: { contract_addr: cw20ContractAddress } }]
@@ -55,47 +51,41 @@ async function addPairAndLpToken(cw20ContractAddress: string) {
     return { pairAddress, lpAddress };
 }
 
-async function listingMultisig(cw20ContractAddress: string) {
-    const { client, defaultAddress } = await getCosmWasmClient();
-    const { remoteDecimals, remoteDenom, localChannelId, ibcWasmAddress, staking, tokenCoingeckoId, tokenSymbol } =
-        envVariables;
-
-    // we dont use the pair & lp address from the arguments because they can be passed incorrectly. Instead, its easier to query and get the right pair info
-    const factory = new OraiswapFactoryClient(client, defaultAddress, envVariables.factory as string);
-    const pairInfo = await factory.pair({
-        assetInfos: [{ native_token: { denom: 'orai' } }, { token: { contract_addr: cw20ContractAddress } }]
-    });
-
-    // build multiple wasm msgs for multisig
-    const msgs = await buildMultisigMessages({
-        cw20ContractAddress,
-        remoteDecimals: remoteDecimals,
-        remoteDenom: remoteDenom,
-        ibcWasmAddress,
-        pairAddress: pairInfo.contract_addr,
-        localChannelId,
-        lpAddress: pairInfo.liquidity_token,
-        stakingContract: staking,
-        tokenCoingeckoId: tokenCoingeckoId
-    });
-
-    // build propose msg for multisig
-    const title = `Update mapping converter, create mining pool & provide initial liquidity for token with symbol ${tokenSymbol}`;
-    const proposeMsg = buildMultisigProposeMsg(title, msgs);
-    const result = await client.execute(defaultAddress, envVariables.admin as string, proposeMsg, 'auto');
-    console.log('result: ', result);
+async function createTextProposal(cw20ContractAddress: string, lpAddress: string, rewardPerSecOrai: number, rewardPerSecOraiX: number) {
+    const title = `OraiDEX frontier - Listing new LP mining pool of token ${cw20ContractAddress}`;
+    const description = `Create a new liquidity mining pool for CW20 token ${cw20ContractAddress} with LP Address: ${lpAddress}. Total rewards per second for the liquidity mining pool: ${rewardPerSecOrai} orai & ${rewardPerSecOraiX} uORAIX`;
+    const { client, defaultAddress } = await getSigningStargateClient();
+    const initial_deposit = [];
+    const message = {
+        typeUrl: "/cosmos.gov.v1beta1.MsgSubmitProposal",
+        value: {
+            content: Any.fromPartial({
+                typeUrl: "/cosmos.gov.v1beta1.TextProposal",
+                value: TextProposal.encode({
+                    title,
+                    description,
+                }).finish()
+            }),
+            proposer: defaultAddress,
+            initialDeposit: initial_deposit,
+        }
+    }
+    return client.simulate(defaultAddress, [message], 'auto');
 }
 
 async function run() {
     try {
         // in the case we have created a new token & created its pair and LP, then we can pass it through the env var to list it using the multisig transaction
         let cw20ContractAddress = process.env.CW20_CONTRACT_ADDRESS;
+        let lpAddress: string;
         if (envVariables.tokenSymbol) {
             cw20ContractAddress = await deployCw20Token(envVariables.tokenSymbol);
-            await addPairAndLpToken(cw20ContractAddress);
+            const result = await addPairAndLpToken(cw20ContractAddress);
+            lpAddress = result.lpAddress;
         }
         console.log('deployed cw20 token address: ', cw20ContractAddress);
-        if (cw20ContractAddress) await listingMultisig(cw20ContractAddress);
+        const simulateResult = await createTextProposal(cw20ContractAddress, lpAddress, 1, 1); // in minimal denom aka in 10^6 denom
+        console.log("simulate result: ", simulateResult);
     } catch (error) {
         console.log('error running the listing script: ', error);
     }
