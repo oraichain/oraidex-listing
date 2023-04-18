@@ -15,6 +15,8 @@ export const constants = {
 
 const envVariables = {
     tokenSymbol: process.env.TOKEN_SYMBOL,
+    orai_reward_per_sec: process.env.ORAI_REWARD_PER_SEC_AMOUNT,
+    oraix_preward_per_sec: process.env.ORAIX_REWARD_PER_SEC_AMOUNT,
 };
 
 async function deployCw20Token(tokenSymbol: string, cap?: string) {
@@ -84,7 +86,7 @@ async function run() {
             lpAddress = result.lpAddress;
         }
         console.log('deployed cw20 token address: ', cw20ContractAddress);
-        const simulateResult = await createTextProposal(cw20ContractAddress, lpAddress, 1, 1); // in minimal denom aka in 10^6 denom
+        const simulateResult = await createTextProposal(cw20ContractAddress, lpAddress, parseInt(envVariables.orai_reward_per_sec), parseInt(envVariables.oraix_preward_per_sec)); // in minimal denom aka in 10^6 denom
         console.log("simulate result: ", simulateResult);
     } catch (error) {
         console.log('error running the listing script: ', error);
