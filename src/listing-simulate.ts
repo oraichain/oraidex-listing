@@ -1,16 +1,22 @@
-import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-dotenv.config();
 import { getSimulateCosmWasmClient } from './cosmjs';
 import { buildMultisigMessages, constants } from './helpers';
-import { InstantiateMsg as IbcWasmInstantiateMsg } from './contracts/CwIcs20Latest.types';
-import { InstantiateMsg as FactoryInstantiateMsg } from './contracts/OraiswapFactory.types';
-import { InstantiateMsg as StakingInstantiateMsg } from './contracts/OraiswapStaking.types';
-import { InstantiateMsg as OraiswapTokenInstantiateMsg } from './contracts/OraiswapToken.types';
+dotenv.config();
+
+import { Cw3FixedMultisigClient, Cw3FixedMultisigTypes, CwIcs20LatestTypes } from '@oraichain/common-contracts-sdk';
+import {
+  OraiswapFactoryClient,
+  OraiswapFactoryTypes,
+  OraiswapOracleTypes,
+  OraiswapRouterTypes,
+  OraiswapStakingTypes,
+  OraiswapTokenTypes
+} from '@oraichain/oraidex-contracts-sdk';
+
+import * as commonArtifacts from '@oraichain/common-contracts-build';
+import * as oraidexArtifacts from '@oraichain/oraidex-contracts-build';
+
 import { readFileSync } from 'fs';
-import path from 'path';
-import { OraiswapFactoryClient } from './contracts/OraiswapFactory.client';
-import { Cw3FixedMultisigClient, Cw3FixedMultisigQueryClient } from './contracts/Cw3FixedMultisig.client';
 
 const client = getSimulateCosmWasmClient();
 const envVariables = {
@@ -30,57 +36,56 @@ async function deployOraiDexContracts(): Promise<{
 }> {
   const { devAddress } = constants;
   // deploy fixed multisig
-  const multisig = await client.deploy(
+  const multisig = await commonArtifacts.deployContract<Cw3FixedMultisigTypes.InstantiateMsg>(
+    client,
     devAddress,
-    path.join(__dirname, 'wasm/cw3-fixed-multisig.wasm'),
     {
       voters: [{ addr: constants.devAddress, weight: 1 }],
       threshold: { absolute_count: { weight: 1 } },
       max_voting_period: { height: 1000 }
     },
+    'cw3-fixed-multisig',
     'cw3-fixed-multisig'
   );
-  // deploy ibc wasm
-  const ibcWasm = await client.deploy(
-    devAddress,
-    path.join(__dirname, 'wasm/cw-ics20-latest.wasm'),
-    {
-      allowlist: [],
-      default_gas_limit: undefined,
-      default_timeout: 1800,
-      gov_contract: devAddress
-    } as IbcWasmInstantiateMsg,
-    'cw-ics20'
-  );
+
   // upload pair & lp token code id
   const { codeId: pairCodeId } = await client.upload(
     devAddress,
-    readFileSync(path.join(__dirname, 'wasm/oraiswap_pair.wasm')),
+    readFileSync(oraidexArtifacts.getContractDir('oraiswap_pair')),
     'auto'
   );
   const { codeId: lpCodeId } = await client.upload(
     devAddress,
-    readFileSync(path.join(__dirname, 'wasm/oraiswap_token.wasm')),
+    readFileSync(oraidexArtifacts.getContractDir('oraiswap_token')),
     'auto'
   );
   // deploy oracle addr
-  const oracle = await client.deploy(devAddress, path.join(__dirname, 'wasm/oraiswap_oracle.wasm'), {}, 'oracle');
-  // deploy factory contract
-  const factory = await client.deploy(
+  const oracle = await oraidexArtifacts.deployContract<OraiswapOracleTypes.InstantiateMsg>(
+    client,
     devAddress,
-    path.join(__dirname, 'wasm/oraiswap_factory.wasm'),
+    {},
+    'oracle',
+    'oraiswap_oracle'
+  );
+  // deploy factory contract
+  const factory = await oraidexArtifacts.deployContract<OraiswapFactoryTypes.InstantiateMsg>(
+    client,
+    devAddress,
+
     {
       commission_rate: null,
       oracle_addr: oracle.contractAddress,
       pair_code_id: pairCodeId,
       token_code_id: lpCodeId
-    } as FactoryInstantiateMsg,
-    'factory'
+    },
+    'factory',
+    'oraiswap_factory'
   );
   // deploy staking contract address
-  const staking = await client.deploy(
+  const staking = await oraidexArtifacts.deployContract<OraiswapStakingTypes.InstantiateMsg>(
+    client,
     devAddress,
-    path.join(__dirname, 'wasm/oraiswap_staking.wasm'),
+
     {
       base_denom: constants.oraiDenom,
       factory_addr: factory.contractAddress,
@@ -88,8 +93,36 @@ async function deployOraiDexContracts(): Promise<{
       oracle_addr: oracle.contractAddress,
       owner: devAddress,
       rewarder: devAddress
-    } as StakingInstantiateMsg,
-    'staking'
+    },
+    'staking',
+    'oraiswap_staking'
+  );
+
+  // deploy staking contract address
+  const router = await oraidexArtifacts.deployContract<OraiswapRouterTypes.InstantiateMsg>(
+    client,
+    devAddress,
+    {
+      factory_addr: factory.contractAddress,
+      factory_addr_v2: factory.contractAddress
+    },
+    'router',
+    'oraiswap_router'
+  );
+
+  // deploy ibc wasm
+  const ibcWasm = await commonArtifacts.deployContract<CwIcs20LatestTypes.InstantiateMsg>(
+    client,
+    devAddress,
+    {
+      allowlist: [],
+      default_gas_limit: undefined,
+      default_timeout: 1800,
+      gov_contract: devAddress,
+      swap_router_contract: router.contractAddress
+    },
+    'cw-ics20',
+    'cw-ics20-latest'
   );
 
   return {
@@ -121,7 +154,7 @@ async function instantiateCw20Token(
         { amount: constants.ibcWasmInitialBalances, address: ibcWasmAddress }
       ],
       marketing: null
-    } as OraiswapTokenInstantiateMsg,
+    } as OraiswapTokenTypes.InstantiateMsg,
     'cw20',
     'auto'
   );
@@ -183,9 +216,8 @@ async function listingMultisig(
     }))
   });
   // has to split two types of clients because if using the same interface, there will be conflict on the 'vote' entrypoint of execute & query
-  const multisigQuery = new Cw3FixedMultisigQueryClient(client, multisig);
-  const queryResult = await multisigQuery.listProposals({});
-  console.log(queryResult.proposals[0].msgs);
+  const queryResult = await multisigContract.listProposals({});
+  console.dir(queryResult.proposals[0].msgs, { depth: null });
 }
 
 async function run() {

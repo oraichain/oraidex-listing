@@ -1,9 +1,6 @@
 import { Coin } from '@cosmjs/amino';
-import { ExecuteMsg as ExecuteIbcWasmMsg } from './contracts/CwIcs20Latest.types';
-import { ExecuteMsg as ExecutePairMsg } from './contracts/OraiswapPair.types';
-import { ExecuteMsg as ExecuteStakingMsg } from './contracts/OraiswapStaking.types';
-import { ExecuteMsg as ExecuteTokenMsg } from './contracts/OraiswapToken.types';
-import { Asset } from './contracts/types';
+import { CwIcs20LatestTypes } from '@oraichain/common-contracts-sdk';
+import { OraiswapPairTypes, OraiswapStakingTypes, OraiswapTokenTypes, Asset } from '@oraichain/oraidex-contracts-sdk';
 
 async function httpGet(url: string) {
   const data = await fetch(url).then((data) => data.json());
@@ -88,7 +85,7 @@ export async function buildMultisigMessages(data: {
         local_channel_id: localChannelId,
         remote_decimals: parseInt(remoteDecimals)
       }
-    } as ExecuteIbcWasmMsg)
+    } as CwIcs20LatestTypes.ExecuteMsg)
   );
 
   // create mining pool
@@ -98,7 +95,7 @@ export async function buildMultisigMessages(data: {
         asset_info,
         staking_token: lpAddress
       }
-    } as ExecuteStakingMsg)
+    } as OraiswapStakingTypes.ExecuteMsg)
   );
 
   // add reward per second for the mining pool
@@ -111,7 +108,7 @@ export async function buildMultisigMessages(data: {
           { info: { token: { contract_addr: cw20ContractAddress } }, amount: '1' }
         ] as Asset[]
       }
-    } as ExecuteStakingMsg)
+    } as OraiswapStakingTypes.ExecuteMsg)
   );
 
   // add increase allowance msg for the pair contract to provide lp later
@@ -121,7 +118,7 @@ export async function buildMultisigMessages(data: {
         amount: '100000000000', // hard-coded 10k amount allowance. Not high but not low, just to be safe
         spender: pairAddress
       }
-    } as ExecuteTokenMsg)
+    } as OraiswapTokenTypes.ExecuteMsg)
   );
 
   // provide liquidity
@@ -137,7 +134,7 @@ export async function buildMultisigMessages(data: {
             { info: { native_token: { denom: constants.oraiDenom } }, amount: oraiAmount }
           ]
         }
-      } as ExecutePairMsg,
+      } as OraiswapPairTypes.ExecuteMsg,
       [{ denom: constants.oraiDenom, amount: oraiAmount }]
     )
   );
