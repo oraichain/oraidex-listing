@@ -106,3 +106,5 @@ dist
 
 src/*.js*
 src/contracts/*.js*
+
+build
