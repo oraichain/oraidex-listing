@@ -1760,12 +1760,19 @@
   dependencies:
     "@octokit/openapi-types" "^17.1.2"
 
-"@oraichain/common-contracts-sdk@^1.0.8":
+"@oraichain/common-contracts-build@^1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@oraichain/common-contracts-build/-/common-contracts-build-1.0.12.tgz#dcb4107e63268ab44e48f5a18ba153625bd9451d"
+  integrity sha512-/bySfl1490uU8nWl65Lx1/YvNpd4W80zQ9gOLUUiPdNe/92YMERUi2YVXXtHfDP7w/NXscltLVmwIBP9E4I5ag==
+  dependencies:
+    "@oraichain/common-contracts-sdk" "^1.0.9"
+
+"@oraichain/common-contracts-sdk@^1.0.8", "@oraichain/common-contracts-sdk@^1.0.9":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@oraichain/common-contracts-sdk/-/common-contracts-sdk-1.0.9.tgz#e020b26b245c2f3bf3ee299597478ce4d580532b"
   integrity sha512-4BRxzwdlRPnUskOAiOSA7M2IQ0sZSqTZ7B/jsj/wclksjJrodfw5XAgmuBgJRks6k701ZQGbTdSyGcowHHjs5A==
 
-"@oraichain/oraidex-contracts-build@^1.0.7":
+"@oraichain/oraidex-contracts-build@^1.0.9":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@oraichain/oraidex-contracts-build/-/oraidex-contracts-build-1.0.9.tgz#9226d24fd1b8ce73bdd72b8de0affdf6dfc2f3e8"
   integrity sha512-H0Ogk+3Fi9Ihfzo0X00hRM8PNS9y15gMGgHIkfyM42whovOlYS6XcZYp8SlrZT7VnEvjYz8FHhDvhGY7uEfutw==
