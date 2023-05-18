@@ -16,7 +16,9 @@
     "@cosmjs/stargate": "^0.29.5",
     "@terran-one/cw-simulate": "https://github.com/oraichain/cw-simulate.git",
     "cosmjs-types": "^0.7.2",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "@oraichain/oraidex-contracts-sdk": "^1.0.7",
+    "@oraichain/common-contracts-sdk": "^1.0.8"
   },
   "main": "src/index.ts",
   "scripts": {
