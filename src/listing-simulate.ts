@@ -1,17 +1,9 @@
-import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import 'dotenv/config'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { getSimulateCosmWasmClient } from './cosmjs';
 import { buildMultisigMessages, constants } from './helpers';
-dotenv.config();
 
-import { Cw3FixedMultisigClient, Cw3FixedMultisigTypes, CwIcs20LatestTypes } from '@oraichain/common-contracts-sdk';
-import {
-  OraiswapFactoryClient,
-  OraiswapFactoryTypes,
-  OraiswapOracleTypes,
-  OraiswapRouterTypes,
-  OraiswapStakingTypes,
-  OraiswapTokenTypes
-} from '@oraichain/oraidex-contracts-sdk';
+import { Cw3FixedMultisigClient } from '@oraichain/common-contracts-sdk';
+import { OraiswapFactoryClient, OraiswapTokenTypes } from '@oraichain/oraidex-contracts-sdk';
 
 import * as commonArtifacts from '@oraichain/common-contracts-build';
 import * as oraidexArtifacts from '@oraichain/oraidex-contracts-build';
@@ -36,7 +28,7 @@ async function deployOraiDexContracts(): Promise<{
 }> {
   const { devAddress } = constants;
   // deploy fixed multisig
-  const multisig = await commonArtifacts.deployContract<Cw3FixedMultisigTypes.InstantiateMsg>(
+  const multisig = await commonArtifacts.deployContract(
     client,
     devAddress,
     {
@@ -60,18 +52,11 @@ async function deployOraiDexContracts(): Promise<{
     'auto'
   );
   // deploy oracle addr
-  const oracle = await oraidexArtifacts.deployContract<OraiswapOracleTypes.InstantiateMsg>(
-    client,
-    devAddress,
-    {},
-    'oracle',
-    'oraiswap_oracle'
-  );
+  const oracle = await oraidexArtifacts.deployContract(client, devAddress, {}, 'oracle', 'oraiswap_oracle');
   // deploy factory contract
-  const factory = await oraidexArtifacts.deployContract<OraiswapFactoryTypes.InstantiateMsg>(
+  const factory = await oraidexArtifacts.deployContract(
     client,
     devAddress,
-
     {
       commission_rate: null,
       oracle_addr: oracle.contractAddress,
@@ -82,7 +67,7 @@ async function deployOraiDexContracts(): Promise<{
     'oraiswap_factory'
   );
   // deploy staking contract address
-  const staking = await oraidexArtifacts.deployContract<OraiswapStakingTypes.InstantiateMsg>(
+  const staking = await oraidexArtifacts.deployContract(
     client,
     devAddress,
 
@@ -99,7 +84,7 @@ async function deployOraiDexContracts(): Promise<{
   );
 
   // deploy staking contract address
-  const router = await oraidexArtifacts.deployContract<OraiswapRouterTypes.InstantiateMsg>(
+  const router = await oraidexArtifacts.deployContract(
     client,
     devAddress,
     {
@@ -111,7 +96,7 @@ async function deployOraiDexContracts(): Promise<{
   );
 
   // deploy ibc wasm
-  const ibcWasm = await commonArtifacts.deployContract<CwIcs20LatestTypes.InstantiateMsg>(
+  const ibcWasm = await commonArtifacts.deployContract(
     client,
     devAddress,
     {
