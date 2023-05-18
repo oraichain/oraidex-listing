@@ -1,0 +1,7 @@
+{
+  "name": "@oraichain/oraidex-listing-contracts-sdk",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "typings": "src",
+  "license": "MIT"
+}
