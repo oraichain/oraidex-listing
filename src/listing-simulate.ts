@@ -215,7 +215,7 @@ async function listingMultisig(
       }
     }))
   });
-  // has to split two types of clients because if using the same interface, there will be conflict on the 'vote' entrypoint of execute & query
+
   const queryResult = await multisigContract.listProposals({});
   console.dir(queryResult.proposals[0].msgs, { depth: null });
 }
