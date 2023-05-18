@@ -1,5 +1,5 @@
 {
-  "name": "@oraichain/oraimargin-contracts-build",
+  "name": "@oraichain/oraidex-listing-contracts-build",
   "version": "1.0.10",
   "main": "build/index.js",
   "license": "MIT",

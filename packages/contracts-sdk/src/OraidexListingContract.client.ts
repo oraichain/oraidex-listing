@@ -6,8 +6,8 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import {Uint128, AssetInfo, Addr, Logo, EmbeddedLogo, Binary, ListTokenMsg, Asset, InstantiateMarketingInfo, Config} from "./types";
-import {InstantiateMsg, ExecuteMsg, MinterResponse, QueryMsg, MigrateMsg} from "./OraidexListingContract.types";
+import {Uint128, AssetInfo, Addr, Logo, EmbeddedLogo, Binary, Asset, InstantiateMarketingInfo, Config} from "./types";
+import {InstantiateMsg, ExecuteMsg, ListTokenMsg, MinterResponse, QueryMsg, MigrateMsg} from "./OraidexListingContract.types";
 export interface OraidexListingContractReadOnlyInterface {
   contractAddress: string;
   config: () => Promise<Config>;
