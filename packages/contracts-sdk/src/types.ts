@@ -1,5 +1,3 @@
-import { MinterResponse } from "./OraidexListingContract.types";
-
 export type Uint128 = string;
 export type AssetInfo = {
   token: {
