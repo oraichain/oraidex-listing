@@ -5,7 +5,6 @@ import { OraidexListingContractTypes } from '@oraichain/oraidex-listing-contract
 
 export type ContractName = 'oraidex-listing-contract';
 export type InstantiateMsg = OraidexListingContractTypes.InstantiateMsg;
-export type MigrateMsg = OraidexListingContractTypes.MigrateMsg;
 
 const contractDir = path.join(path.dirname(module.filename), '..', 'data');
 

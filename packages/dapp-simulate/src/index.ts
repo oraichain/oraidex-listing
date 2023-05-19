@@ -21,27 +21,18 @@ async function simulate() {
   );
 
   // deploy oracle addr
-  const oracle = await oraidexArtifacts.deployContract(client, devAddress, {}, 'oracle', 'oraiswap_oracle');
+  const oracle = await oraidexArtifacts.deployContract(client, devAddress, 'oraiswap_oracle');
   // deploy factory contract
-  const factory = await oraidexArtifacts.deployContract(
-    client,
-    devAddress,
-    {
-      oracle_addr: oracle.contractAddress,
-      pair_code_id: pairCodeId,
-      token_code_id: lpCodeId
-    },
-    'factory',
-    'oraiswap_factory'
-  );
+  const factory = await oraidexArtifacts.deployContract(client, devAddress, 'oraiswap_factory', {
+    oracle_addr: oracle.contractAddress,
+    pair_code_id: pairCodeId,
+    token_code_id: lpCodeId
+  });
 
-  const oraidexListing = await oraidexListingArtifacts.deployContract(
-    client,
-    devAddress,
-    { cw20_code_id: lpCodeId, factory_addr: factory.contractAddress },
-    'oraidex-listing',
-    'oraidex-listing-contract'
-  );
+  const oraidexListing = await oraidexListingArtifacts.deployContract(client, devAddress, 'oraidex-listing-contract', {
+    cw20_code_id: lpCodeId,
+    factory_addr: factory.contractAddress
+  });
 
   const oraidexListingContract = new OraidexListingContractClient(client, devAddress, oraidexListing.contractAddress);
   const result = await oraidexListingContract.listToken({
