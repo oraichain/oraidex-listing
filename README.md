@@ -11,3 +11,21 @@ To list a CW20 token & create a text proposal, one needs to fill:
 # Command
 
 TOKEN_SYMBOL=foobar yarn start
+
+## Generate code and docs
+
+```bash
+# build code:
+cwtools build ../oraidex-listing-contract -o packages/contracts-build/data
+# gen code:
+cwtools gents ../oraidex-listing-contract -o packages/contracts-sdk/src
+# gen doc:
+yarn docs
+
+# update comments:
+git apply patches/contracts-sdk.patch
+# edit contracts-sdk
+git diff packages/contracts-sdk > patches/contracts-sdk.patch
+# rollback
+git checkout packages/contracts-sdk
+```
