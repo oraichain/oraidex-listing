@@ -3,13 +3,6 @@ import { OraidexListingContractClient } from '@oraichain/oraidex-listing-contrac
 import { getCosmWasmClient } from './cosmjs';
 dotenv.config();
 
-export const constants = {
-    codeId: 761,
-    cw20Decimals: 6,
-    oraiDenom: 'orai',
-    factory: "orai167r4ut7avvgpp3rlzksz6vw5spmykluzagvmj3ht845fjschwugqjsqhst",
-};
-
 const envVariables = {
     tokenSymbol: process.env.TOKEN_SYMBOL,
     orai_reward_per_sec: process.env.ORAI_REWARD_PER_SEC_AMOUNT,
