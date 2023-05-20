@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import {Uint128, AssetInfo, Addr, Logo, EmbeddedLogo, Binary, ListTokenMsg, Asset, InstantiateMarketingInfo, Config} from "./types";
+import {Uint128, AssetInfo, Addr, Logo, EmbeddedLogo, Binary, ListTokenMsg, Cw20Coin, Asset, InstantiateMarketingInfo, Config} from "./types";
 import {InstantiateMsg, ExecuteMsg, MinterResponse, QueryMsg, MigrateMsg} from "./OraidexListingContract.types";
 export interface OraidexListingContractReadOnlyInterface {
   contractAddress: string;
@@ -32,16 +32,20 @@ export interface OraidexListingContractInterface extends OraidexListingContractR
   contractAddress: string;
   sender: string;
   listToken: ({
+    initialBalances,
     label,
     liquidityPoolRewardAssets,
     marketing,
     mint,
+    name,
     symbol
   }: {
+    initialBalances?: Cw20Coin[];
     label?: string;
     liquidityPoolRewardAssets: Asset[];
     marketing?: InstantiateMarketingInfo;
     mint?: MinterResponse;
+    name?: string;
     symbol: string;
   }, $fee?: number | StdFee | "auto", $memo?: string, $funds?: Coin[]) => Promise<ExecuteResult>;
 }
@@ -59,24 +63,30 @@ export class OraidexListingContractClient extends OraidexListingContractQueryCli
   }
 
   listToken = async ({
+    initialBalances,
     label,
     liquidityPoolRewardAssets,
     marketing,
     mint,
+    name,
     symbol
   }: {
+    initialBalances?: Cw20Coin[];
     label?: string;
     liquidityPoolRewardAssets: Asset[];
     marketing?: InstantiateMarketingInfo;
     mint?: MinterResponse;
+    name?: string;
     symbol: string;
   }, $fee: number | StdFee | "auto" = "auto", $memo?: string, $funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       list_token: {
+        initial_balances: initialBalances,
         label,
         liquidity_pool_reward_assets: liquidityPoolRewardAssets,
         marketing,
         mint,
+        name,
         symbol
       }
     }, $fee, $memo, $funds);

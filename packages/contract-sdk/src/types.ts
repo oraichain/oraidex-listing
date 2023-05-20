@@ -21,11 +21,17 @@ export type EmbeddedLogo = {
 };
 export type Binary = string;
 export interface ListTokenMsg {
+  initial_balances?: Cw20Coin[] | null;
   label?: string | null;
   liquidity_pool_reward_assets: Asset[];
   marketing?: InstantiateMarketingInfo | null;
   mint?: MinterResponse | null;
+  name?: string | null;
   symbol: string;
+}
+export interface Cw20Coin {
+  address: string;
+  amount: Uint128;
 }
 export interface Asset {
   amount: Uint128;

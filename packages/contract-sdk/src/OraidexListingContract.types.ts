@@ -1,4 +1,4 @@
-import {Uint128, AssetInfo, Addr, Logo, EmbeddedLogo, Binary, ListTokenMsg, Asset, InstantiateMarketingInfo, Config} from "./types";
+import {Uint128, AssetInfo, Addr, Logo, EmbeddedLogo, Binary, ListTokenMsg, Cw20Coin, Asset, InstantiateMarketingInfo, Config} from "./types";
 export interface InstantiateMsg {
   cw20_code_id: number;
   factory_addr: string;
