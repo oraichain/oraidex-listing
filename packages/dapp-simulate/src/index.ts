@@ -39,7 +39,7 @@ async function simulate() {
     liquidityPoolRewardAssets: [{ amount: '100', info: { native_token: { denom: 'orai' } } }],
     symbol: 'FOOBAR'
   });
-  console.log('result: ', result);
+  console.dir(result, { depth: null });
 }
 
 simulate();
