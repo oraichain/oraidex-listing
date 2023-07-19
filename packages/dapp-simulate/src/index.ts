@@ -35,6 +35,7 @@ async function simulate() {
 
   const oraidexListingContract = new OraidexListingContractClient(client, devAddress, oraidexListing.contractAddress);
   const result = await oraidexListingContract.listToken({
+    pairAssetInfo: { native_token: { denom: 'orai' } },
     label: 'foobar',
     liquidityPoolRewardAssets: [{ amount: '100', info: { native_token: { denom: 'orai' } } }],
     symbol: 'FOOBAR'

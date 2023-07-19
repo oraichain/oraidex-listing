@@ -13,7 +13,9 @@ export interface ListTokenMsg {
   marketing?: InstantiateMarketingInfo | null;
   mint?: MinterResponse | null;
   name?: string | null;
-  symbol: string;
+  pair_asset_info: AssetInfo;
+  symbol?: string | null;
+  targeted_asset_info?: AssetInfo | null;
 }
 export interface MinterResponse {
   cap?: Uint128 | null;
