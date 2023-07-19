@@ -1,7 +1,7 @@
 import * as oraidexArtifacts from '@oraichain/oraidex-contracts-build';
 import * as oraidexListingArtifacts from '@oraichain/oraidex-listing-contracts-build/src';
 import { OraidexListingContractClient } from '@oraichain/oraidex-listing-contracts-sdk';
-import { SimulateCosmWasmClient } from '@terran-one/cw-simulate';
+import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { readFileSync } from 'fs';
 
 const devAddress = 'orai14n3tx8s5ftzhlxvq0w5962v60vd82h30rha573';
