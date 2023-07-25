@@ -7,7 +7,11 @@ import { readFileSync } from 'fs';
 const devAddress = 'orai14n3tx8s5ftzhlxvq0w5962v60vd82h30rha573';
 
 async function simulate() {
-  const client = new SimulateCosmWasmClient({ chainId: 'Oraichain-testnet', bech32Prefix: 'orai' });
+  const client = new SimulateCosmWasmClient({
+    chainId: 'Oraichain-testnet',
+    bech32Prefix: 'orai',
+    metering: process.env.METERING === 'true'
+  });
   const { codeId: pairCodeId } = await client.upload(
     devAddress,
     readFileSync(oraidexArtifacts.getContractDir('oraiswap_pair')),
