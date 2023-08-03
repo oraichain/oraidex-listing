@@ -11,6 +11,7 @@
     "docs": "typedoc --entryPointStrategy expand --name 'Oraidex Listing' --readme none --tsconfig packages/contracts-sdk/tsconfig.json packages/contracts-sdk/src"
   },
   "devDependencies": {
+    "@oraichain/cw-simulate": "^2.8.38",
     "@oraichain/common-contracts-build": "^1.0.12",
     "@oraichain/oraidex-contracts-build": "^1.0.9",
     "@types/jest": "^29.5.0",
@@ -28,7 +29,7 @@
     "@cosmjs/cosmwasm-stargate": "^0.29.5",
     "@cosmjs/encoding": "^0.29.5",
     "@cosmjs/proto-signing": "^0.29.5",
-    "@cosmjs/stargate": "^0.29.5",    
+    "@cosmjs/stargate": "^0.29.5",
     "cosmjs-types": "^0.7.2",
     "dotenv": "^16.0.3"
   }
