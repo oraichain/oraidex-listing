@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "patch-package",
     "build": "tsc -p",
-    "deploy": "yarn publish --access public",
+    "deploy": "yarn publish --access public --patch",
     "docs": "typedoc --entryPointStrategy expand --name 'Oraidex Listing' --readme none --tsconfig packages/contracts-sdk/tsconfig.json packages/contracts-sdk/src"
   },
   "devDependencies": {

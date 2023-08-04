@@ -108,3 +108,4 @@ src/*.js*
 src/contracts/*.js*
 
 build
+.npmrc
