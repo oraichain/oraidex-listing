@@ -1,7 +1,10 @@
 {
   "name": "@oraichain/oraidex-listing-contracts-build",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "main": "build/index.js",
+  "files": [
+    "build/"
+  ],
   "license": "MIT",
   "dependencies": {
     "@oraichain/oraidex-listing-contracts-sdk": "^1.0.0"
