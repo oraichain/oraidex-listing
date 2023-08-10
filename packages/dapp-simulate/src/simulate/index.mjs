@@ -1,7 +1,6 @@
 import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { BinaryKVIterStorage, BasicKVIterStorage } from '@oraichain/cosmwasm-vm-js';
 import { OraiswapLimitOrderClient } from '@oraichain/oraidex-contracts-sdk';
-import { fromBase64 } from '@cosmjs/encoding';
 import path from 'path';
 import fsPromise from 'fs/promises';
 import fs from 'fs';
@@ -100,30 +99,29 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
 (async () => {
   const client = new SimulateCosmWasmClient({
     chainId: 'Oraichain',
-    bech32Prefix: 'orai',
-    kvIterStorageRegistry: BinaryKVIterStorage
+    bech32Prefix: 'orai'
   });
 
-  // const storages = {
-  //   auction: 'orai1u8r0kkmevkgjkeacfgh0jv268kap82af937pwz',
-  //   offering: 'orai15cmdgfph74uahck6edl6zz5mg5z7gwxyehyggm',
-  //   ai_royalty: 'orai1s5jlhcnqc00hqmldhts5jtd7f3tfwmr4lfheg8',
-  //   offering_v2: 'orai107ku785v2e52e9kxe26kaguene3re7cy396uq6',
-  //   'offering_v1.1': 'orai1hur7m6wu7v79t6m3qal6qe0ufklw8uckrxk5lt',
-  //   datahub_storage: 'orai1mlslct409ztn96j4zrywg9l26xr8gpwe2npdv4',
-  //   ai_royalty_temp: 'orai1s5jlhcnqc00hqmldhts5jtd7f3tfwmr4lfheg8',
-  //   '1155_storage': 'orai1v2psavrxwgh39v0ead7z4rcn4qq2cfnast98m9',
-  //   auction_extend: 'orai1c5eftzwqqsth437uemx45qgyr38djhkde7t2as',
-  //   rejected_storage: 'orai1fp9lernzdwkg5z9l9ejrwjmjvezzypacspmw27',
-  //   whitelist_storage: 'orai1u4zqgyt8adq45a8xffc356dr8dqsny6merh0h0',
-  //   market_721_payment_storage: 'orai1ynvtgqffwgcxxx0hnehj4t7gsmv25nrr770s83',
-  //   market_1155_payment_storage: 'orai1l783x7q0yvr9aklr2zkpkpspq7vmxmfnndgl7c',
-  //   governance: 'orai14tqq093nu88tzs7ryyslr78sm3tzrmnpem6fak',
-  //   implementation: 'orai1yngprf4w3s0hvgslr2txntk5kwrkp8kcqv2n3ceqy7xrazqx8nasp6xkff'
-  // };
+  const storages = {
+    auction: 'orai1u8r0kkmevkgjkeacfgh0jv268kap82af937pwz',
+    offering: 'orai15cmdgfph74uahck6edl6zz5mg5z7gwxyehyggm',
+    ai_royalty: 'orai1s5jlhcnqc00hqmldhts5jtd7f3tfwmr4lfheg8',
+    offering_v2: 'orai107ku785v2e52e9kxe26kaguene3re7cy396uq6',
+    'offering_v1.1': 'orai1hur7m6wu7v79t6m3qal6qe0ufklw8uckrxk5lt',
+    datahub_storage: 'orai1mlslct409ztn96j4zrywg9l26xr8gpwe2npdv4',
+    ai_royalty_temp: 'orai1s5jlhcnqc00hqmldhts5jtd7f3tfwmr4lfheg8',
+    '1155_storage': 'orai1v2psavrxwgh39v0ead7z4rcn4qq2cfnast98m9',
+    auction_extend: 'orai1c5eftzwqqsth437uemx45qgyr38djhkde7t2as',
+    rejected_storage: 'orai1fp9lernzdwkg5z9l9ejrwjmjvezzypacspmw27',
+    whitelist_storage: 'orai1u4zqgyt8adq45a8xffc356dr8dqsny6merh0h0',
+    market_721_payment_storage: 'orai1ynvtgqffwgcxxx0hnehj4t7gsmv25nrr770s83',
+    market_1155_payment_storage: 'orai1l783x7q0yvr9aklr2zkpkpspq7vmxmfnndgl7c',
+    governance: 'orai14tqq093nu88tzs7ryyslr78sm3tzrmnpem6fak',
+    implementation: 'orai1yngprf4w3s0hvgslr2txntk5kwrkp8kcqv2n3ceqy7xrazqx8nasp6xkff'
+  };
 
-  // await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
-  // console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
+  await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
+  console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
 
   const contractAddress = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
   await loadState(contractAddress, client, 'orderbook');
