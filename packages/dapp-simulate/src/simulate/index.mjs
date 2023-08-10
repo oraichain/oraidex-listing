@@ -1,11 +1,11 @@
-import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { BinaryKVIterStorage, BasicKVIterStorage } from '@oraichain/cosmwasm-vm-js';
+import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { OraiswapLimitOrderClient } from '@oraichain/oraidex-contracts-sdk';
-import path from 'path';
-import fsPromise from 'fs/promises';
 import fs from 'fs';
+import fsPromise from 'fs/promises';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { deserialize } from 'v8';
+import { deserialize, serialize } from 'v8';
 
 if (typeof __dirname === 'undefined') {
   const __filename = fileURLToPath(import.meta.url);
@@ -99,7 +99,8 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
 (async () => {
   const client = new SimulateCosmWasmClient({
     chainId: 'Oraichain',
-    bech32Prefix: 'orai'
+    bech32Prefix: 'orai',
+    kvIterStorageRegistry: BinaryKVIterStorage
   });
 
   const storages = {
@@ -124,7 +125,9 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
 
   const contractAddress = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
+  console.time('load');
   await loadState(contractAddress, client, 'orderbook');
+  console.timeEnd('load');
 
   const orderbook = new OraiswapLimitOrderClient(client, senderAddress, contractAddress);
   console.time('search');
