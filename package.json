@@ -11,7 +11,7 @@
     "docs": "typedoc --entryPointStrategy expand --name 'Oraidex Listing' --readme none --tsconfig packages/contracts-sdk/tsconfig.json packages/contracts-sdk/src"
   },
   "devDependencies": {
-    "@oraichain/cw-simulate": "^2.8.41",
+    "@oraichain/cw-simulate": "^2.8.44",
     "@oraichain/common-contracts-build": "^1.0.12",
     "@oraichain/oraidex-contracts-build": "^1.0.9",
     "@types/jest": "^29.5.0",
