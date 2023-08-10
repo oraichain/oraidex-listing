@@ -30,6 +30,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "node src/index.mjs",
+    "simulate": "node src/simulate/index.mjs",
     "test": "jest"
   }
 }
