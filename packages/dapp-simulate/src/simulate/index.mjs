@@ -70,7 +70,7 @@ const loadState = async (contractAddress, client, label) => {
     while (ind < buffer.length) {
       const keyLength = buffer[ind++];
       const k = buffer.subarray(ind, (ind += keyLength));
-      const valueLength = buffer[ind++] * 256 + buffer[ind++];
+      const valueLength = (buffer[ind++] << 8) | buffer[ind++];
       const v = buffer.subarray(ind, (ind += valueLength));
       data.push([k, v]);
     }
