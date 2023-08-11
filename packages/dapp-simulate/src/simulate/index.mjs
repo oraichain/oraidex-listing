@@ -1,11 +1,10 @@
-import { BinaryKVIterStorage, BasicKVIterStorage } from '@oraichain/cosmwasm-vm-js';
+import { BinaryKVIterStorage, BasicKVIterStorage, writeUInt32BE } from '@oraichain/cosmwasm-vm-js';
 import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { OraiswapLimitOrderClient } from '@oraichain/oraidex-contracts-sdk';
 import fs from 'fs';
-import fsPromise from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { deserialize, serialize } from 'v8';
+import { fromBase64, toBase64 } from '@cosmjs/encoding';
 
 if (typeof __dirname === 'undefined') {
   const __filename = fileURLToPath(import.meta.url);
@@ -63,21 +62,51 @@ const saveState = async (contractAddress, nextKey) => {
  */
 const loadState = async (contractAddress, client, label) => {
   let data;
+
   if (client.app.kvIterStorageRegistry === BinaryKVIterStorage) {
-    const buffer = await fsPromise.readFile(path.resolve(__dirname, `${contractAddress}.state`));
-    data = deserialize(buffer);
-  } else {
-    const buffer = await fsPromise.readFile(path.resolve(__dirname, `${contractAddress}.csv`));
+    console.time('subprocess');
+    const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.bin`));
+    let ind = 0;
     data = [];
-    for (const line of buffer.toString().trim().split('\n')) {
-      const [k, v] = line.split(',', 2);
+    while (ind < buffer.length) {
+      const keyLength = buffer[ind++];
+      const k = buffer.subarray(ind, (ind += keyLength));
+      const valueLength = buffer[ind++] * 256 + buffer[ind++];
+      const v = buffer.subarray(ind, (ind += valueLength));
       data.push([k, v]);
     }
+  } else {
+    console.time('subprocess');
+    const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.csv`));
+    data = buffer
+      .toString()
+      .trim()
+      .split('\n')
+      .map((line) => line.split(',', 2));
+    console.timeEnd('subprocess');
+
+    // console.time('writeprocess');
+    // const bin = data.map((row) => row.map(fromBase64));
+    // const n = data.reduce((n, item) => {
+    //   return n + item[0].length + item[1].length + 3;
+    // }, 0);
+    // const outputBuffer = Buffer.allocUnsafe(n);
+    // for (const [k, v] of bin) {
+    //   outputBuffer[ind++] = k.length;
+    //   outputBuffer.set(k, ind);
+    //   ind += k.length;
+    //   ind += 2;
+    //   writeUInt32BE(outputBuffer, v.length, ind);
+    //   outputBuffer.set(v, ind);
+    //   ind += v.length;
+    // }
+    // fs.writeFileSync(path.resolve(__dirname, `${contractAddress}.bin`), outputBuffer);
+    // console.timeEnd('writeprocess');
   }
 
   const { codeId } = await client.upload(
     senderAddress,
-    await fsPromise.readFile(path.resolve(__dirname, contractAddress)),
+    fs.readFileSync(path.resolve(__dirname, contractAddress)),
     'auto'
   );
 
@@ -100,6 +129,7 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   const client = new SimulateCosmWasmClient({
     chainId: 'Oraichain',
     bech32Prefix: 'orai',
+    metering: true,
     kvIterStorageRegistry: BinaryKVIterStorage
   });
 
@@ -125,17 +155,14 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
 
   const contractAddress = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
-  console.time('load');
   await loadState(contractAddress, client, 'orderbook');
-  console.timeEnd('load');
 
   const orderbook = new OraiswapLimitOrderClient(client, senderAddress, contractAddress);
   console.time('search');
   console.dir(
     await orderbook.orders({
-      filter: {
-        bidder: 'orai1kq0vsru8ufey2pduv7yn4ppp3h8k028tqmgpfw'
-      },
+      filter: 'none',
+      startAfter: 1649131,
       assetInfos: [
         {
           native_token: { denom: 'orai' }
