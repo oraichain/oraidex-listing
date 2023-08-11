@@ -62,9 +62,8 @@ const saveState = async (contractAddress, nextKey) => {
  */
 const loadState = async (contractAddress, client, label) => {
   let data;
-
+  // console.time('subprocess');
   if (client.app.kvIterStorageRegistry === BinaryKVIterStorage) {
-    console.time('subprocess');
     const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.bin`));
     let ind = 0;
     data = [];
@@ -76,14 +75,12 @@ const loadState = async (contractAddress, client, label) => {
       data.push([k, v]);
     }
   } else {
-    console.time('subprocess');
     const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.csv`));
     data = buffer
       .toString()
       .trim()
       .split('\n')
       .map((line) => line.split(',', 2));
-    console.timeEnd('subprocess');
 
     // console.time('writeprocess');
     // const bin = data.map((row) => row.map(fromBase64));
@@ -103,6 +100,7 @@ const loadState = async (contractAddress, client, label) => {
     // fs.writeFileSync(path.resolve(__dirname, `${contractAddress}.bin`), outputBuffer);
     // console.timeEnd('writeprocess');
   }
+  // console.timeEnd('subprocess');
 
   const { codeId } = await client.upload(
     senderAddress,
@@ -129,7 +127,7 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   const client = new SimulateCosmWasmClient({
     chainId: 'Oraichain',
     bech32Prefix: 'orai',
-    metering: true,
+    // metering: true,
     kvIterStorageRegistry: BinaryKVIterStorage
   });
 
@@ -149,32 +147,28 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     market_1155_payment_storage: 'orai1l783x7q0yvr9aklr2zkpkpspq7vmxmfnndgl7c',
     governance: 'orai14tqq093nu88tzs7ryyslr78sm3tzrmnpem6fak',
     implementation: 'orai1yngprf4w3s0hvgslr2txntk5kwrkp8kcqv2n3ceqy7xrazqx8nasp6xkff'
+    // orderbook: 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp'
   };
 
   await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
   console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
 
-  const contractAddress = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
-  await loadState(contractAddress, client, 'orderbook');
-
-  const orderbook = new OraiswapLimitOrderClient(client, senderAddress, contractAddress);
-  console.time('search');
-  console.dir(
-    await orderbook.orders({
-      filter: 'none',
-      startAfter: 1649131,
-      assetInfos: [
-        {
-          native_token: { denom: 'orai' }
-        },
-        {
-          token: {
-            contract_addr: 'orai12hzjxfh77wl572gdzct2fxv2arxcwh6gykc7qh'
-          }
-        }
-      ]
-    }),
-    { depth: null }
-  );
-  console.timeEnd('search');
+  // const orderbook = new OraiswapLimitOrderClient(client, senderAddress, storages.orderbook);
+  // const start = performance.now();
+  // const ret = await orderbook.orders({
+  //   filter: 'none',
+  //   startAfter: 1649131,
+  //   assetInfos: [
+  //     {
+  //       native_token: { denom: 'orai' }
+  //     },
+  //     {
+  //       token: {
+  //         contract_addr: 'orai12hzjxfh77wl572gdzct2fxv2arxcwh6gykc7qh'
+  //       }
+  //     }
+  //   ]
+  // });
+  // console.dir(ret, { depth: null });
+  // console.log('Took', performance.now() - start, 'ms');
 })();
