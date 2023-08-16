@@ -12,6 +12,45 @@ if (typeof __dirname === 'undefined') {
   globalThis.__dirname = path.dirname(__filename);
 }
 
+class BufferIter {
+  constructor(buf, size) {
+    this.buf = buf;
+    this.size = size;
+    this.ind = 0;
+    this.bufInd = 0;
+  }
+
+  next() {
+    if (this.ind === this.size) {
+      return {
+        done: true
+      };
+    }
+
+    const keyLength = this.buf[this.bufInd++];
+    const k = this.buf.subarray(this.bufInd, (this.bufInd += keyLength));
+    const valueLength = (this.buf[this.bufInd++] << 8) | this.buf[this.bufInd++];
+    const v = this.buf.subarray(this.bufInd, (this.bufInd += valueLength));
+    this.ind++;
+    return {
+      value: [k, v]
+    };
+  }
+}
+
+class BufferCollection {
+  constructor(buf) {
+    this.size = buf.readUInt32BE();
+    this.buf = buf.subarray(4);
+  }
+
+  entries() {
+    return new BufferIter(this.buf, this.size);
+  }
+}
+
+BufferCollection.prototype['@@__IMMUTABLE_KEYED__@@'] = true;
+
 const downloadState = async (contractAddress, writeCallback, endCallback, startAfter, limit = 1000) => {
   let nextKey = startAfter;
 
@@ -70,8 +109,9 @@ const writeCsvToBinary = (contractAddress) => {
   const n = data.reduce((n, item) => {
     return n + item[0].length + item[1].length + 3;
   }, 0);
-  const outputBuffer = Buffer.allocUnsafe(n);
-  let ind = 0;
+  let ind = 4;
+  const outputBuffer = Buffer.allocUnsafe(n + ind);
+  outputBuffer.writeUInt32BE(data.length);
   for (const [k, v] of data) {
     outputBuffer[ind++] = k.length;
     outputBuffer.set(k, ind);
@@ -91,18 +131,7 @@ const loadState = async (contractAddress, client, label) => {
   let data;
   if (client.app.kvIterStorageRegistry === BinaryKVIterStorage) {
     const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.bin`));
-    let ind = 0;
-    const list = [];
-    console.time('sort ' + contractAddress);
-    while (ind < buffer.length) {
-      const keyLength = buffer[ind++];
-      const k = buffer.subarray(ind, (ind += keyLength));
-      const valueLength = (buffer[ind++] << 8) | buffer[ind++];
-      const v = buffer.subarray(ind, (ind += valueLength));
-      list.push([k, v]);
-    }
-    console.timeLog('sort ' + contractAddress, list.length);
-    data = SortedMap.rawPack(list, compare);
+    data = SortedMap.rawPack(new BufferCollection(buffer), compare);
   } else {
     const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.csv`));
     data = buffer
@@ -148,7 +177,6 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     offering_v2: 'orai107ku785v2e52e9kxe26kaguene3re7cy396uq6',
     'offering_v1.1': 'orai1hur7m6wu7v79t6m3qal6qe0ufklw8uckrxk5lt',
     datahub_storage: 'orai1mlslct409ztn96j4zrywg9l26xr8gpwe2npdv4',
-    ai_royalty_temp: 'orai1s5jlhcnqc00hqmldhts5jtd7f3tfwmr4lfheg8',
     '1155_storage': 'orai1v2psavrxwgh39v0ead7z4rcn4qq2cfnast98m9',
     auction_extend: 'orai1c5eftzwqqsth437uemx45qgyr38djhkde7t2as',
     rejected_storage: 'orai1fp9lernzdwkg5z9l9ejrwjmjvezzypacspmw27',
@@ -156,18 +184,17 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     market_721_payment_storage: 'orai1ynvtgqffwgcxxx0hnehj4t7gsmv25nrr770s83',
     market_1155_payment_storage: 'orai1l783x7q0yvr9aklr2zkpkpspq7vmxmfnndgl7c',
     governance: 'orai14tqq093nu88tzs7ryyslr78sm3tzrmnpem6fak',
-    implementation: 'orai1yngprf4w3s0hvgslr2txntk5kwrkp8kcqv2n3ceqy7xrazqx8nasp6xkff'
+    implementation: 'orai1yngprf4w3s0hvgslr2txntk5kwrkp8kcqv2n3ceqy7xrazqx8nasp6xkff',
+    orderbook: 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp'
   };
 
   // Object.values(storages).forEach(writeCsvToBinary);
 
-  // await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
-  // console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
+  await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
+  console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
 
-  const orderbook = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
-  await loadState(orderbook, client);
-  const orderbookContract = new OraiswapLimitOrderClient(client, senderAddress, orderbook);
-
+  const orderbookContract = new OraiswapLimitOrderClient(client, senderAddress, storages.orderbook);
+  const start = performance.now();
   const ret = await orderbookContract.orders({
     filter: 'none',
     startAfter: 1649131,
@@ -183,4 +210,5 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     ]
   });
   console.dir(ret, { depth: null });
+  console.log('Took', performance.now() - start, 'ms');
 })();
