@@ -161,27 +161,26 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
 
   // Object.values(storages).forEach(writeCsvToBinary);
 
-  await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
-  console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
+  // await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
+  // console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
 
-  // const orderbook = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
-  // await loadState(orderbook, client);
-  // const orderbook = new OraiswapLimitOrderClient(client, senderAddress, orderbook);
-  // const start = performance.now();
-  // const ret = await orderbook.orders({
-  //   filter: 'none',
-  //   startAfter: 1649131,
-  //   assetInfos: [
-  //     {
-  //       native_token: { denom: 'orai' }
-  //     },
-  //     {
-  //       token: {
-  //         contract_addr: 'orai12hzjxfh77wl572gdzct2fxv2arxcwh6gykc7qh'
-  //       }
-  //     }
-  //   ]
-  // });
-  // console.dir(ret, { depth: null });
-  // console.log('Took', performance.now() - start, 'ms');
+  const orderbook = 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp';
+  await loadState(orderbook, client);
+  const orderbookContract = new OraiswapLimitOrderClient(client, senderAddress, orderbook);
+
+  const ret = await orderbookContract.orders({
+    filter: 'none',
+    startAfter: 1649131,
+    assetInfos: [
+      {
+        native_token: { denom: 'orai' }
+      },
+      {
+        token: {
+          contract_addr: 'orai12hzjxfh77wl572gdzct2fxv2arxcwh6gykc7qh'
+        }
+      }
+    ]
+  });
+  console.dir(ret, { depth: null });
 })();
