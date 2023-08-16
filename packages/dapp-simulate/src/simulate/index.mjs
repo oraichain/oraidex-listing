@@ -165,9 +165,9 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
 (async () => {
   const client = new SimulateCosmWasmClient({
     chainId: 'Oraichain',
-    bech32Prefix: 'orai',
-    // metering: true,
-    kvIterStorageRegistry: BinaryKVIterStorage
+    bech32Prefix: 'orai'
+    // metering: true
+    // kvIterStorageRegistry: BasicKVIterStorage
   });
 
   const storages = {
@@ -196,8 +196,7 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   const orderbookContract = new OraiswapLimitOrderClient(client, senderAddress, storages.orderbook);
   const start = performance.now();
   const ret = await orderbookContract.orders({
-    filter: 'none',
-    startAfter: 1649131,
+    filter: { bidder: 'orai1g4s5qdw54wdj6ggukfdr59j4uv82asczunxpj7' },
     assetInfos: [
       {
         native_token: { denom: 'orai' }
