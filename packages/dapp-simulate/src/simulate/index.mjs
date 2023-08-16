@@ -191,7 +191,7 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   // Object.values(storages).forEach(writeCsvToBinary);
 
   await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
-  console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: {} } }));
+  console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: { limit: 1 } } }));
 
   const orderbookContract = new OraiswapLimitOrderClient(client, senderAddress, storages.orderbook);
   const start = performance.now();
