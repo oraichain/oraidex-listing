@@ -131,7 +131,9 @@ const loadState = async (contractAddress, client, label) => {
   let data;
   if (client.app.kvIterStorageRegistry === BinaryKVIterStorage) {
     const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.bin`));
+    // console.time('rawpack ' + contractAddress);
     data = SortedMap.rawPack(new BufferCollection(buffer), compare);
+    // console.timeLog('rawpack ' + contractAddress, data.size);
   } else {
     const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.csv`));
     data = buffer
@@ -190,7 +192,8 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
 
   // Object.values(storages).forEach(writeCsvToBinary);
 
-  await Promise.all(Object.entries(storages).map(([label, addr]) => loadState(addr, client, label)));
+  for (const [label, addr] of Object.entries(storages)) await loadState(addr, client, label);
+
   console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: { limit: 1 } } }));
 
   const orderbookContract = new OraiswapLimitOrderClient(client, senderAddress, storages.orderbook);

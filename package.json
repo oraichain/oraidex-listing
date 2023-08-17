@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@oraichain/common-contracts-build": "^1.0.12",
-    "@oraichain/cw-simulate": "^2.8.53",
+    "@oraichain/cw-simulate": "^2.8.55",
     "@oraichain/oraidex-contracts-build": "^1.0.9",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.8",
