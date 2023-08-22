@@ -1,11 +1,11 @@
-import { BinaryKVIterStorage, BasicKVIterStorage, writeUInt32BE, compare } from '@oraichain/cosmwasm-vm-js';
+import { BinaryKVIterStorage, compare } from '@oraichain/cosmwasm-vm-js';
 import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { OraiswapLimitOrderClient } from '@oraichain/oraidex-contracts-sdk';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SortedMap } from '@oraichain/immutable';
-import { fromBase64, toBase64 } from '@cosmjs/encoding';
+import { fromBase64 } from '@cosmjs/encoding';
 
 if (typeof __dirname === 'undefined') {
   const __filename = fileURLToPath(import.meta.url);
@@ -116,8 +116,8 @@ const writeCsvToBinary = (contractAddress) => {
     outputBuffer[ind++] = k.length;
     outputBuffer.set(k, ind);
     ind += k.length;
-    ind += 2;
-    writeUInt32BE(outputBuffer, v.length, ind);
+    outputBuffer[ind++] = (v.length >> 8) & 0b11111111;
+    outputBuffer[ind++] = v.length & 0b11111111;
     outputBuffer.set(v, ind);
     ind += v.length;
   }
@@ -140,7 +140,10 @@ const loadState = async (contractAddress, client, label) => {
       .toString()
       .trim()
       .split('\n')
-      .map((line) => line.split(',', 2));
+      .map((line) => {
+        const ind = line.indexOf(',');
+        return [fromBase64(line.slice(0, ind)), fromBase64(line.slice(ind + 1))];
+      });
   }
 
   const { codeId } = await client.upload(
