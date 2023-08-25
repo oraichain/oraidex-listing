@@ -22,6 +22,7 @@ export class BufferStream {
       this.sizeBuf = Buffer.allocUnsafe(4);
       fs.readSync(this.fd, this.sizeBuf, 0, 4, 0);
     }
+    this.filePath = filePath;
   }
 
   increaseSize() {
@@ -63,7 +64,7 @@ export class BufferStream {
     // update size
     fs.writeSync(this.fd, this.sizeBuf, 0, 4, 0);
     // append item
-    fs.appendFileSync(this.fd, outputBuffer);
+    fs.appendFileSync(this.filePath, outputBuffer);
   }
 }
 
