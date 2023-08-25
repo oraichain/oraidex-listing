@@ -1,15 +1,70 @@
-import { BinaryKVIterStorage, compare } from '@oraichain/cosmwasm-vm-js';
+import { compare } from '@oraichain/cosmwasm-vm-js';
 import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
 import { OraiswapLimitOrderClient } from '@oraichain/oraidex-contracts-sdk';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SortedMap } from '@oraichain/immutable';
-import { fromBase64 } from '@cosmjs/encoding';
 
 if (typeof __dirname === 'undefined') {
   const __filename = fileURLToPath(import.meta.url);
   globalThis.__dirname = path.dirname(__filename);
+}
+
+export class BufferStream {
+  constructor(filePath) {
+    if (!fs.existsSync(filePath)) {
+      this.sizeBuf = Buffer.alloc(4);
+      fs.writeFileSync(filePath, this.sizeBuf);
+      this.fd = fs.openSync(filePath, 'r+');
+    } else {
+      this.fd = fs.openSync(filePath, 'r+');
+      this.sizeBuf = Buffer.allocUnsafe(4);
+      fs.readSync(this.fd, this.sizeBuf, 0, 4, 0);
+    }
+  }
+
+  increaseSize() {
+    for (let i = this.sizeBuf.length - 1; i >= 0; --i) {
+      if (this.sizeBuf[i] === 255) {
+        this.sizeBuf[i] = 0;
+      } else {
+        this.sizeBuf[i]++;
+        break;
+      }
+    }
+  }
+
+  get size() {
+    return this.sizeBuf.readUInt32BE();
+  }
+
+  close() {
+    fs.closeSync(this.fd);
+  }
+
+  write(entries) {
+    let n = 0;
+    for (const [k, v] of entries) {
+      n += k.length + v.length + 3;
+    }
+    const outputBuffer = Buffer.allocUnsafe(n);
+    let ind = 0;
+    for (const [k, v] of entries) {
+      outputBuffer[ind++] = k.length;
+      outputBuffer.set(k, ind);
+      ind += k.length;
+      outputBuffer[ind++] = (v.length >> 8) & 0b11111111;
+      outputBuffer[ind++] = v.length & 0b11111111;
+      outputBuffer.set(v, ind);
+      ind += v.length;
+      this.increaseSize();
+    }
+    // update size
+    fs.writeSync(this.fd, this.sizeBuf, 0, 4, 0);
+    // append item
+    fs.appendFileSync(this.fd, outputBuffer);
+  }
 }
 
 class BufferIter {
@@ -76,75 +131,38 @@ const downloadState = async (contractAddress, writeCallback, endCallback, startA
 };
 
 const saveState = async (contractAddress, nextKey) => {
+  const contractState = path.resolve(__dirname, `${contractAddress}.state`);
   await new Promise((resolve) => {
     downloadState(
       contractAddress,
       (chunks) => {
-        const data = chunks.map(({ key, value }) => `${Buffer.from(key, 'hex').toString('base64')},${value}`);
-        fs.appendFileSync(path.resolve(__dirname, `${contractAddress}.csv`), data.join('\n') + '\n');
+        const entries = chunks.map(({ key, value }) => [Buffer.from(key, 'hex'), Buffer.from(value, 'base64')]);
+        bufStream.write(entries);
       },
       resolve,
       nextKey
     );
   });
 
-  const {
-    contract_info: { code_id }
-  } = await fetch(`https://lcd.orai.io/cosmwasm/wasm/v1/contract/${contractAddress}`).then((res) => res.json());
-  const { data } = await fetch(`https://lcd.orai.io/cosmwasm/wasm/v1/code/${code_id}`).then((res) => res.json());
-  fs.writeFileSync(path.resolve(__dirname, contractAddress), Buffer.from(data, 'base64'));
-
-  console.log('done');
-};
-
-const writeCsvToBinary = (contractAddress) => {
-  const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.csv`));
-  const data = buffer
-    .toString()
-    .trim()
-    .split('\n')
-    .map((line) => line.split(',', 2).map(fromBase64))
-    .sort((a, b) => compare(a[0], b[0]));
-
-  const n = data.reduce((n, item) => {
-    return n + item[0].length + item[1].length + 3;
-  }, 0);
-  let ind = 4;
-  const outputBuffer = Buffer.allocUnsafe(n + ind);
-  outputBuffer.writeUInt32BE(data.length);
-  for (const [k, v] of data) {
-    outputBuffer[ind++] = k.length;
-    outputBuffer.set(k, ind);
-    ind += k.length;
-    outputBuffer[ind++] = (v.length >> 8) & 0b11111111;
-    outputBuffer[ind++] = v.length & 0b11111111;
-    outputBuffer.set(v, ind);
-    ind += v.length;
+  const contractFile = path.resolve(__dirname, contractAddress);
+  if (!fs.existsSync(contractFile)) {
+    const {
+      contract_info: { code_id }
+    } = await fetch(`https://lcd.orai.io/cosmwasm/wasm/v1/contract/${contractAddress}`).then((res) => res.json());
+    const { data } = await fetch(`https://lcd.orai.io/cosmwasm/wasm/v1/code/${code_id}`).then((res) => res.json());
+    fs.writeFileSync(contractFile, Buffer.from(data, 'base64'));
   }
-  fs.writeFileSync(path.resolve(__dirname, `${contractAddress}.bin`), outputBuffer);
+  console.log('done');
 };
 
 /**
  * @param {SimulateCosmWasmClient} client
  */
 const loadState = async (contractAddress, client, label) => {
-  let data;
-  if (client.app.kvIterStorageRegistry === BinaryKVIterStorage) {
-    const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.bin`));
-    // console.time('rawpack ' + contractAddress);
-    data = SortedMap.rawPack(new BufferCollection(buffer), compare);
-    // console.timeLog('rawpack ' + contractAddress, data.size);
-  } else {
-    const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.csv`));
-    data = buffer
-      .toString()
-      .trim()
-      .split('\n')
-      .map((line) => {
-        const ind = line.indexOf(',');
-        return [fromBase64(line.slice(0, ind)), fromBase64(line.slice(ind + 1))];
-      });
-  }
+  const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.state`));
+  // console.time('rawpack ' + contractAddress);
+  const data = SortedMap.rawPack(new BufferCollection(buffer), compare);
+  // console.timeLog('rawpack ' + contractAddress, data.size);
 
   const { codeId } = await client.upload(
     senderAddress,
@@ -172,7 +190,6 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     chainId: 'Oraichain',
     bech32Prefix: 'orai'
     // metering: true
-    // kvIterStorageRegistry: BasicKVIterStorage
   });
 
   const storages = {
@@ -192,8 +209,6 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     implementation: 'orai1yngprf4w3s0hvgslr2txntk5kwrkp8kcqv2n3ceqy7xrazqx8nasp6xkff',
     orderbook: 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp'
   };
-
-  // Object.values(storages).forEach(writeCsvToBinary);
 
   for (const [label, addr] of Object.entries(storages)) await loadState(addr, client, label);
 
