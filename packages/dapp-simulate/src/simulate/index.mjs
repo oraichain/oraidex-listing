@@ -1,188 +1,14 @@
-import { compare } from '@oraichain/cosmwasm-vm-js';
-import { SimulateCosmWasmClient } from '@oraichain/cw-simulate';
+import { SimulateCosmWasmClient, DownloadState } from '@oraichain/cw-simulate';
 import { OraiswapLimitOrderClient } from '@oraichain/oraidex-contracts-sdk';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { SortedMap } from '@oraichain/immutable';
 
 if (typeof __dirname === 'undefined') {
   const __filename = fileURLToPath(import.meta.url);
   globalThis.__dirname = path.dirname(__filename);
 }
 
-export class BufferStream {
-  constructor(filePath) {
-    if (!fs.existsSync(filePath)) {
-      this.sizeBuf = Buffer.alloc(4);
-      fs.writeFileSync(filePath, this.sizeBuf);
-      this.fd = fs.openSync(filePath, 'r+');
-    } else {
-      this.fd = fs.openSync(filePath, 'r+');
-      this.sizeBuf = Buffer.allocUnsafe(4);
-      fs.readSync(this.fd, this.sizeBuf, 0, 4, 0);
-    }
-    this.filePath = filePath;
-  }
-
-  increaseSize() {
-    for (let i = this.sizeBuf.length - 1; i >= 0; --i) {
-      if (this.sizeBuf[i] === 255) {
-        this.sizeBuf[i] = 0;
-      } else {
-        this.sizeBuf[i]++;
-        break;
-      }
-    }
-  }
-
-  get size() {
-    return this.sizeBuf.readUInt32BE();
-  }
-
-  close() {
-    fs.closeSync(this.fd);
-  }
-
-  write(entries) {
-    let n = 0;
-    for (const [k, v] of entries) {
-      n += k.length + v.length + 3;
-    }
-    const outputBuffer = Buffer.allocUnsafe(n);
-    let ind = 0;
-    for (const [k, v] of entries) {
-      outputBuffer[ind++] = k.length;
-      outputBuffer.set(k, ind);
-      ind += k.length;
-      outputBuffer[ind++] = (v.length >> 8) & 0b11111111;
-      outputBuffer[ind++] = v.length & 0b11111111;
-      outputBuffer.set(v, ind);
-      ind += v.length;
-      this.increaseSize();
-    }
-    // update size
-    fs.writeSync(this.fd, this.sizeBuf, 0, 4, 0);
-    // append item
-    fs.appendFileSync(this.filePath, outputBuffer);
-  }
-}
-
-class BufferIter {
-  constructor(buf, size) {
-    this.buf = buf;
-    this.size = size;
-    this.ind = 0;
-    this.bufInd = 0;
-  }
-
-  next() {
-    if (this.ind === this.size) {
-      return {
-        done: true
-      };
-    }
-
-    const keyLength = this.buf[this.bufInd++];
-    const k = this.buf.subarray(this.bufInd, (this.bufInd += keyLength));
-    const valueLength = (this.buf[this.bufInd++] << 8) | this.buf[this.bufInd++];
-    const v = this.buf.subarray(this.bufInd, (this.bufInd += valueLength));
-    this.ind++;
-    return {
-      value: [k, v]
-    };
-  }
-}
-
-class BufferCollection {
-  constructor(buf) {
-    this.size = buf.readUInt32BE();
-    this.buf = buf.subarray(4);
-  }
-
-  entries() {
-    return new BufferIter(this.buf, this.size);
-  }
-}
-
-BufferCollection.prototype['@@__IMMUTABLE_KEYED__@@'] = true;
-
-const downloadState = async (contractAddress, writeCallback, endCallback, startAfter, limit = 1000) => {
-  let nextKey = startAfter;
-
-  while (true) {
-    const url = new URL(`https://lcd.orai.io/cosmwasm/wasm/v1/contract/${contractAddress}/state`);
-    url.searchParams.append('pagination.limit', limit.toString());
-    if (nextKey) {
-      url.searchParams.append('pagination.key', nextKey);
-      console.log('nextKey', nextKey);
-    }
-    try {
-      const { models, pagination } = await fetch(url.toString(), { signal: AbortSignal.timeout(30000) }).then((res) =>
-        res.json()
-      );
-      writeCallback(models);
-      if (!(nextKey = pagination.next_key)) {
-        return endCallback();
-      }
-    } catch (ex) {
-      await new Promise((r) => setTimeout(r, 1000));
-    }
-  }
-};
-
-const saveState = async (contractAddress, nextKey) => {
-  const contractState = path.resolve(__dirname, `${contractAddress}.state`);
-  await new Promise((resolve) => {
-    downloadState(
-      contractAddress,
-      (chunks) => {
-        const entries = chunks.map(({ key, value }) => [Buffer.from(key, 'hex'), Buffer.from(value, 'base64')]);
-        bufStream.write(entries);
-      },
-      resolve,
-      nextKey
-    );
-  });
-
-  const contractFile = path.resolve(__dirname, contractAddress);
-  if (!fs.existsSync(contractFile)) {
-    const {
-      contract_info: { code_id }
-    } = await fetch(`https://lcd.orai.io/cosmwasm/wasm/v1/contract/${contractAddress}`).then((res) => res.json());
-    const { data } = await fetch(`https://lcd.orai.io/cosmwasm/wasm/v1/code/${code_id}`).then((res) => res.json());
-    fs.writeFileSync(contractFile, Buffer.from(data, 'base64'));
-  }
-  console.log('done');
-};
-
-/**
- * @param {SimulateCosmWasmClient} client
- */
-const loadState = async (contractAddress, client, label) => {
-  const buffer = fs.readFileSync(path.resolve(__dirname, `${contractAddress}.state`));
-  // console.time('rawpack ' + contractAddress);
-  const data = SortedMap.rawPack(new BufferCollection(buffer), compare);
-  // console.timeLog('rawpack ' + contractAddress, data.size);
-
-  const { codeId } = await client.upload(
-    senderAddress,
-    fs.readFileSync(path.resolve(__dirname, contractAddress)),
-    'auto'
-  );
-
-  await client.loadContract(
-    contractAddress,
-    {
-      codeId,
-      admin: senderAddress,
-      label: label ?? contractAddress,
-      creator: senderAddress,
-      created: 1
-    },
-    data
-  );
-};
+const downloadState = new DownloadState('https://lcd.orai.io', __dirname);
 
 const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
 
@@ -211,7 +37,8 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
     orderbook: 'orai1nt58gcu4e63v7k55phnr3gaym9tvk3q4apqzqccjuwppgjuyjy6sxk8yzp'
   };
 
-  for (const [label, addr] of Object.entries(storages)) await loadState(addr, client, label);
+  for (const [label, addr] of Object.entries(storages))
+    await downloadState.loadState(client, senderAddress, addr, label, downloadState.loadStateData(addr));
 
   console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: { limit: 1 } } }));
 
