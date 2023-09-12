@@ -1941,10 +1941,10 @@
   resolved "https://registry.yarnpkg.com/@oraichain/cosmwasm-vm-zk-nodejs/-/cosmwasm-vm-zk-nodejs-0.0.7.tgz#d640c4a144c35157ac0e4292a02b92e357d90cf0"
   integrity sha512-ZbRFSWL81a/gDrPUsHzpwOttI0SdGNrYEDcmGGcl4cN0853XAzFkYt71PM2xckWZ0Mlh21erbTpZJNTFH78FYg==
 
-"@oraichain/cw-simulate@^2.8.58":
-  version "2.8.58"
-  resolved "https://registry.yarnpkg.com/@oraichain/cw-simulate/-/cw-simulate-2.8.58.tgz#e7ef2baca98b77d7b7325a387c3b74719074c51e"
-  integrity sha512-WTeE/3VsG4HyQ+ZqbOZOZkPAcpEcPaPhKqN6eHUWruJZRpKMJ61QHFvhbCbcHJkfMOhZjqIZNu+ECi3MgzzvRw==
+"@oraichain/cw-simulate@^2.8.59":
+  version "2.8.59"
+  resolved "https://registry.yarnpkg.com/@oraichain/cw-simulate/-/cw-simulate-2.8.59.tgz#a9891d9ed3c2f3623c48d45b4424b2a139efc35b"
+  integrity sha512-ZBQ4nh5qsHhaeLIeVqJWfLkz/KgXuo0l+qDM9HF+ZzexuKNpZMZ7+vQmCKLYOlp/6WniD+a3oBvx9kqYBQXCdA==
   dependencies:
     "@cosmjs/amino" "^0.31.0"
     "@cosmjs/cosmwasm-stargate" "^0.31.0"

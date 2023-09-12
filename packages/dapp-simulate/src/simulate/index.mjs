@@ -38,7 +38,7 @@ const senderAddress = 'orai14vcw5qk0tdvknpa38wz46js5g7vrvut8lk0lk6';
   };
 
   for (const [label, addr] of Object.entries(storages))
-    await downloadState.loadState(client, senderAddress, addr, label, downloadState.loadStateData(addr));
+    await downloadState.loadState(client, senderAddress, addr, label);
 
   console.log(await client.queryContractSmart(storages.implementation, { offering: { get_offerings: { limit: 1 } } }));
 
