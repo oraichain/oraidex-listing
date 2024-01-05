@@ -28,6 +28,7 @@ export type EmbeddedLogo = {
 };
 export type Binary = string;
 export interface ListTokenMsg {
+  cw20_admin?: string | null;
   initial_balances?: Cw20Coin[] | null;
   label?: string | null;
   liquidity_pool_reward_assets: Asset[];

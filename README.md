@@ -17,6 +17,8 @@ TOKEN_SYMBOL=foobar yarn start
 ```bash
 # build code:
 cwtools build ../oraidex-listing-contract -o packages/contracts-build/data
+# build json schema
+cwtools build ../oraidex-listing-contract -o packages/contracts-build/data -s
 # gen code:
 cwtools gents ../oraidex-listing-contract -o packages/contracts-sdk/src
 # gen doc:

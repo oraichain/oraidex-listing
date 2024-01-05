@@ -31,6 +31,7 @@ export interface OraidexListingContractInterface extends OraidexListingContractR
   contractAddress: string;
   sender: string;
   listToken: ({
+    cw20Admin,
     initialBalances,
     label,
     liquidityPoolRewardAssets,
@@ -41,6 +42,7 @@ export interface OraidexListingContractInterface extends OraidexListingContractR
     symbol,
     targetedAssetInfo
   }: {
+    cw20Admin?: string;
     initialBalances?: Cw20Coin[];
     label?: string;
     liquidityPoolRewardAssets: Asset[];
@@ -66,6 +68,7 @@ export class OraidexListingContractClient extends OraidexListingContractQueryCli
   }
 
   listToken = async ({
+    cw20Admin,
     initialBalances,
     label,
     liquidityPoolRewardAssets,
@@ -76,6 +79,7 @@ export class OraidexListingContractClient extends OraidexListingContractQueryCli
     symbol,
     targetedAssetInfo
   }: {
+    cw20Admin?: string;
     initialBalances?: Cw20Coin[];
     label?: string;
     liquidityPoolRewardAssets: Asset[];
@@ -88,6 +92,7 @@ export class OraidexListingContractClient extends OraidexListingContractQueryCli
   }, _fee: number | StdFee | "auto" = "auto", _memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       list_token: {
+        cw20_admin: cw20Admin,
         initial_balances: initialBalances,
         label,
         liquidity_pool_reward_assets: liquidityPoolRewardAssets,
