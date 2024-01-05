@@ -15,13 +15,10 @@ async function run() {
     const { client, defaultAddress } = await getCosmWasmClient();
     const listingClient = new OraidexListingContractClient(client, defaultAddress, envVariables.listing_token_contract);
     const result = await listingClient.listToken({
-      targetedAssetInfo: undefined,
-      pairAssetInfo: { native_token: { denom: 'orai' } },
-      symbol: envVariables.tokenSymbol,
-      liquidityPoolRewardAssets: [
-        { amount: envVariables.oraix_preward_per_sec, info: { token: { contract_addr: defaultAddress } } },
-        { amount: envVariables.orai_reward_per_sec, info: { native_token: { denom: 'orai' } } }
-      ]
+      targetedAssetInfo: { native_token: { denom: 'orai' } },
+      pairAssetInfo: { token: { contract_addr: 'orai1dqa52a7hxxuv8ghe7q5v0s36ra0cthea960q2cukznleqhk0wpnshfegez' } },
+      symbol: '',
+      liquidityPoolRewardAssets: []
     });
     console.log('listing result: ', result);
   } catch (error) {
